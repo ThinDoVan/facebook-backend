@@ -5,16 +5,16 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "likeComment")
-public class LikeComment {
+@Table(name = "likePost")
+public class LikePost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int likeCommentId;
+    private int likePostId;
     @ManyToOne
     @JoinColumn(name = "userId")
     private User user;
     @ManyToOne
-    @JoinColumn(name = "commentId")
-    private Comment comment;
+    @JoinColumn(name = "postId")
+    private Post post;
     private LocalDateTime createdTime;
 }
