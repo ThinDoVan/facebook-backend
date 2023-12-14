@@ -19,4 +19,44 @@ public class FriendRequest {
     private User toUser;
     private String message;
     private LocalDateTime createdTime;
+
+    public int getFriendRequestId() {
+        return friendRequestId;
+    }
+
+    public void setFriendRequestId(int friendRequestId) {
+        this.friendRequestId = friendRequestId;
+    }
+
+    public User getFromUser() {
+        return fromUser;
+    }
+
+    public void setFromUser(User fromUser) {
+        this.fromUser = fromUser;
+    }
+
+    public User getToUser() {
+        return toUser;
+    }
+
+    public void setToUser(User toUser) {
+        this.toUser = toUser;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public LocalDateTime getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(LocalDateTime createdTime) {
+        this.createdTime = createdTime;
+    }
 }
