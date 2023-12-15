@@ -1,27 +1,21 @@
 package com.example.facebookbackend.entities;
 
+import com.example.facebookbackend.enums.ERole;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Data;
+
+import java.util.Set;
+
 @Entity
 @Table(name = "role")
+@Data
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int roleId;
-    private String roleName;
 
-    public int getRoleId() {
-        return roleId;
-    }
+    @Enumerated(EnumType.STRING)
+    private ERole role;
 
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
-    }
-
-    public String getRoleName() {
-        return roleName;
-    }
-
-    public void setRoleName(String roleName) {
-        this.roleName = roleName;
-    }
 }
