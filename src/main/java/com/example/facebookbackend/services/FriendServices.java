@@ -6,7 +6,8 @@ import org.springframework.http.ResponseEntity;
 
 public interface FriendServices {
     ResponseEntity<MessageResponse> createAddFriendRequest(String fromEmail, AddFriendRequest addFriendRequest);
-    ResponseEntity<?> getSentAddFriendRequestList(String email);
-    ResponseEntity<?> getReceivedAddFriendRequestList(String email);
+    ResponseEntity<?> getSentAddFriendRequestList(String email, Integer page, Integer size);
+    ResponseEntity<?> getReceivedAddFriendRequestList(String email, Integer page, Integer size);
+    ResponseEntity<?> respondFriendRequest(String email, int id, Boolean isAccept);
     ResponseEntity<?> getUserFriendList(String email);
 }
