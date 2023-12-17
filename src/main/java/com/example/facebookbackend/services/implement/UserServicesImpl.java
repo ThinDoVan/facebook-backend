@@ -52,7 +52,7 @@ public class UserServicesImpl implements UserServices {
     @Override
     public ResponseEntity<MessageResponse> registerAccount(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Email này đã được sử dụng"));
+            return ResponseEntity.ok().body(new MessageResponse("Email này đã được sử dụng"));
         }
         if (registerRequest.getDateOfBirth() != null && registerRequest.getDateOfBirth().isAfter(LocalDate.now())) {
             return ResponseEntity.badRequest().body(new MessageResponse("Ngày sinh không hợp lệ"));
@@ -85,7 +85,8 @@ public class UserServicesImpl implements UserServices {
         String jwt = jwtUtils.generateJwtToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Set<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).collect(Collectors.toSet());
-        return ResponseEntity.ok().body(new JwtResponse(jwt, userDetails.getUsername(), roles));
+        String mess = "Dang nhap thanh cong";
+        return ResponseEntity.ok().body(new JwtResponse(jwt, userDetails.getUsername(), roles, mess));
     }
 
     @Override
