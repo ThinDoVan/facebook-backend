@@ -15,10 +15,12 @@ import com.example.facebookbackend.securities.jwt.JwtUtils;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -49,10 +51,10 @@ public class UserServicesImpl implements UserServices {
     @Override
     public ResponseEntity<MessageResponse> registerAccount(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Email này đã được sử dụng"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Email này đã được sử dụng"));
         }
         if (registerRequest.getDateOfBirth() != null && registerRequest.getDateOfBirth().isAfter(LocalDate.now())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ngày sinh không hợp lệ"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Ngày sinh không hợp lệ"));
         }
 
         User user = new User();
@@ -72,17 +74,21 @@ public class UserServicesImpl implements UserServices {
         user.setCreatedTime(LocalDateTime.now());
 
         userRepository.save(user);
-        return ResponseEntity.ok().body(new MessageResponse("Tạo tài khoản thành công"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo tài khoản thành công"));
     }
 
     @Override
     public ResponseEntity<?> loginAccount(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        try{
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Set<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).collect(Collectors.toSet());
-        return ResponseEntity.ok().body(new JwtResponse(jwt, userDetails.getUsername(), roles));
+        return ResponseEntity.status(HttpStatus.OK).body(new JwtResponse(jwt, userDetails.getUsername(), roles));
+        }catch (AuthenticationException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Đăng nhập thất bại."));
+        }
     }
 
     @Override

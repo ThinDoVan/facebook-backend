@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -42,8 +43,7 @@ public class PostServicesImpl implements PostServices {
         post.setCreatedUser(userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("Lỗi: Không tồn tại người dùng có email: " + email)));
         post.setCreatedTime(LocalDateTime.now());
-        Set<PostVersion> postVersionSet = new HashSet<>();
-        post.setPostVersionSet(postVersionSet);
+
         switch (postRequest.getAudience().toLowerCase()) {
             case "only me", "only_me", "onlyme" ->
                     post.setAudience(audienceRepository.findByAudienceType(EAudience.ONLYME)
@@ -59,7 +59,7 @@ public class PostServicesImpl implements PostServices {
                 postRequest.getContent(),
                 post.getCreatedTime());
         postVersionRepository.save(postVersion);
-        post.setPostVersionSet(postVersion);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo bài viết thành công"));
     }
 
@@ -69,14 +69,16 @@ public class PostServicesImpl implements PostServices {
         if (post.isEmpty()|| post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
         } else {
-            PostVersion lastVersion = null;
-            for (PostVersion version : post.get().getPostVersionSet()) {
+            List<PostVersion> postVersionList = postVersionRepository.findAllByPost(post.get());
+            PostVersion lastVersion = new PostVersion();
+
+            for (PostVersion version : postVersionList) {
                 lastVersion = version;
             }
             PostResponse postResponse = new PostResponse(post.get().getPostId(),
-                    lastVersion != null ? lastVersion.getContent() : null,
+                    lastVersion.getContent(),
                     post.get().getCreatedTime(),
-                    post.get().getCreatedUser(),
+                    post.get().getCreatedUser().getFullName(),
                     post.get().getAudience().getAudienceType());
             return ResponseEntity.status(HttpStatus.OK).body(postResponse);
         }

@@ -38,17 +38,5 @@ public class Post {
     private Audience audience;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
-    @JsonManagedReference
-    private Set<PostVersion> postVersionSet = null;
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
     private Set<Comment> commentSet;
-
-    public void setPostVersionSet(PostVersion postVersion) {
-        this.postVersionSet.add(postVersion);
-    }
-
-    public void setPostVersionSet(Set<PostVersion> postVersionSet) {
-        this.postVersionSet = postVersionSet;
-    }
 }
