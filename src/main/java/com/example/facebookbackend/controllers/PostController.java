@@ -24,8 +24,10 @@ public class PostController {
     }
 
     @GetMapping(path = "/GetPost")
-    public ResponseEntity<?> getPost(@RequestParam int postId) {
-        return postServices.getPost(postId);
+    public ResponseEntity<?> getPost(@AuthenticationPrincipal UserDetails userDetails,
+                                     @RequestParam int postId) {
+        String email = userDetails.getUsername();
+        return postServices.getPost(email, postId);
     }
 
     @PutMapping(path = "/UpdatePost")

@@ -4,7 +4,7 @@ import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
 import com.example.facebookbackend.dtos.response.JwtResponse;
 import com.example.facebookbackend.dtos.response.MessageResponse;
-import com.example.facebookbackend.dtos.response.UserResponse;
+import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.entities.Role;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.ERole;
@@ -14,6 +14,7 @@ import com.example.facebookbackend.repositories.UserRepository;
 import com.example.facebookbackend.securities.jwt.JwtUtils;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.UserServices;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,12 +36,13 @@ import java.util.stream.Collectors;
 @Service
 public class UserServicesImpl implements UserServices {
     @Autowired
+    ModelMapper modelMapper;
+    @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
     JwtUtils jwtUtils;
-
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -97,10 +99,8 @@ public class UserServicesImpl implements UserServices {
         if (user.isEmpty() || !user.get().isEnable()) {
             return ResponseEntity.badRequest().body(new MessageResponse("Không tồn tại người dùng có email: " + email));
         } else {
-            return ResponseEntity.ok().body(new UserResponse(user.get().getUserId(),
-                    user.get().getFullName(),
-                    user.get().getDateOfBirth(),
-                    user.get().getGender()));
+            UserDto userDto = modelMapper.map(user.get(), UserDto.class);
+            return ResponseEntity.ok().body(userDto);
         }
     }
 

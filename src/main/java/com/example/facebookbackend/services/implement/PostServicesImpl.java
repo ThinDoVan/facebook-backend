@@ -2,7 +2,8 @@ package com.example.facebookbackend.services.implement;
 
 import com.example.facebookbackend.dtos.request.PostRequest;
 import com.example.facebookbackend.dtos.response.MessageResponse;
-import com.example.facebookbackend.dtos.response.PostResponse;
+import com.example.facebookbackend.dtos.response.PostDto;
+import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.entities.Post;
 import com.example.facebookbackend.entities.PostVersion;
 import com.example.facebookbackend.entities.User;
@@ -10,19 +11,20 @@ import com.example.facebookbackend.enums.EAudience;
 import com.example.facebookbackend.enums.ERole;
 import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.PostServices;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class PostServicesImpl implements PostServices {
+    @Autowired
+    ModelMapper modelMapper;
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -33,6 +35,8 @@ public class PostServicesImpl implements PostServices {
     AudienceRepository audienceRepository;
     @Autowired
     RoleRepository roleRepository;
+    @Autowired
+    FriendshipRepository friendshipRepository;
 
     @Override
     public ResponseEntity<MessageResponse> createPost(String email, PostRequest postRequest) {
@@ -64,23 +68,37 @@ public class PostServicesImpl implements PostServices {
     }
 
     @Override
-    public ResponseEntity<?> getPost(int postId) {
+    public ResponseEntity<?> getPost(String email, int postId) {
         Optional<Post> post = postRepository.findById(postId);
-        if (post.isEmpty()|| post.get().isDeleted()) {
+        if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
         } else {
-            List<PostVersion> postVersionList = postVersionRepository.findAllByPost(post.get());
-            PostVersion lastVersion = new PostVersion();
-
-            for (PostVersion version : postVersionList) {
-                lastVersion = version;
+            Optional<User> user = userRepository.findByEmail(email);
+            if (user.isEmpty() || !user.get().isEnable()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại người dùng có email: " + email));
+            } else {
+                if ((user.get() == post.get().getCreatedUser())
+                        ||(user.get().getRoleSet().contains(roleRepository.findByRole(ERole.ROLE_ADMIN).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role"))))) {
+                    return ResponseEntity.status(HttpStatus.OK).body(this.getPostInfo(post.get()));
+                } else {
+                    switch (post.get().getAudience().getAudienceType()) {
+                        case ONLYME -> {
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền xem bài viết"));
+                        }
+                        case FRIENDS -> {
+                            if ((friendshipRepository.findByUser1AndUser2(user.get(), post.get().getCreatedUser())!=null)
+                                    ||(friendshipRepository.findByUser1AndUser2(post.get().getCreatedUser(),user.get())!=null)){
+                                return ResponseEntity.status(HttpStatus.OK).body(this.getPostInfo(post.get()));
+                            }else {
+                                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền xem bài viết"));
+                            }
+                        }
+                        default -> {
+                            return ResponseEntity.status(HttpStatus.OK).body(this.getPostInfo(post.get()));
+                        }
+                    }
+                }
             }
-            PostResponse postResponse = new PostResponse(post.get().getPostId(),
-                    lastVersion.getContent(),
-                    post.get().getCreatedTime(),
-                    post.get().getCreatedUser().getFullName(),
-                    post.get().getAudience().getAudienceType());
-            return ResponseEntity.status(HttpStatus.OK).body(postResponse);
         }
     }
 
@@ -88,7 +106,7 @@ public class PostServicesImpl implements PostServices {
     @Override
     public ResponseEntity<MessageResponse> updatePost(String email, Integer postId, PostRequest postRequest) {
         Optional<Post> post = postRepository.findById(postId);
-        if (post.isEmpty()|| post.get().isDeleted()) {
+        if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại bài viết có id: " + postId));
         } else {
             Optional<User> user = userRepository.findByEmail(email);
@@ -125,23 +143,36 @@ public class PostServicesImpl implements PostServices {
     @Override
     public ResponseEntity<MessageResponse> deletePost(String email, Integer postId) {
         Optional<Post> post = postRepository.findById(postId);
-        if (post.isEmpty()|| post.get().isDeleted()) {
+        if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại bài viết có id: " + postId));
         } else {
             Optional<User> user = userRepository.findByEmail(email);
             if (user.isEmpty() || !user.get().isEnable()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại người dùng có email: " + email));
             } else {
-                if ((post.get().getCreatedUser()==user.get())||(user.get().getRoleSet().contains(roleRepository.findByRole(ERole.ROLE_ADMIN).orElseThrow(()-> new RuntimeException("Lỗi: Không tìm thấy Role"))))){
+                if ((post.get().getCreatedUser() == user.get()) || (user.get().getRoleSet().contains(roleRepository.findByRole(ERole.ROLE_ADMIN).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role"))))) {
                     post.get().setDeleted(true);
                     post.get().setDeletedUser(user.get());
                     post.get().setDeletedTime(LocalDateTime.now());
                     postRepository.save(post.get());
                     return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Xóa bài viết thành công"));
-                }else {
+                } else {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền xóa bài viết này"));
                 }
             }
         }
+    }
+
+    private PostDto getPostInfo(Post post) {
+        List<PostVersion> postVersionList = postVersionRepository.findAllByPost(post);
+        PostVersion lastVersion = new PostVersion();
+        for (PostVersion version : postVersionList) {
+            lastVersion = version;
+        }
+        return new PostDto(post.getPostId(),
+                lastVersion.getContent(),
+                post.getCreatedTime(),
+                modelMapper.map(post.getCreatedUser(), UserDto.class),
+                post.getAudience().getAudienceType());
     }
 }
