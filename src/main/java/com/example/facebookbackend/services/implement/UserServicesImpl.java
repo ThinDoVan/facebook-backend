@@ -1,12 +1,10 @@
 package com.example.facebookbackend.services.implement;
 
-import com.example.facebookbackend.dtos.request.AddFriendRequest;
 import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
 import com.example.facebookbackend.dtos.response.JwtResponse;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.dtos.response.UserResponse;
-import com.example.facebookbackend.entities.FriendRequest;
 import com.example.facebookbackend.entities.Role;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.ERole;
@@ -28,7 +26,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -91,7 +88,7 @@ public class UserServicesImpl implements UserServices {
     @Override
     public ResponseEntity<?> getUser(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty() || user.get().isEnable() == false) {
+        if (user.isEmpty() || !user.get().isEnable()) {
             return ResponseEntity.badRequest().body(new MessageResponse("Không tồn tại người dùng có email: " + email));
         } else {
             return ResponseEntity.ok().body(new UserResponse(user.get().getUserId(),

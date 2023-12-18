@@ -1,14 +1,19 @@
 package com.example.facebookbackend.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "postVersion")
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PostVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,7 +21,7 @@ public class PostVersion {
 
     @ManyToOne
     @JoinColumn(name = "postId")
-    @JsonIgnoreProperties
+@JsonBackReference
     private Post post;
 
     private String content;
