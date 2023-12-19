@@ -37,6 +37,5 @@ public class Post {
     @JsonBackReference
     private Audience audience;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "post")
-    private Set<Comment> commentSet;
+
 }

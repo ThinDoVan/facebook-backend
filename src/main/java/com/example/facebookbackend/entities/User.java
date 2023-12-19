@@ -41,7 +41,4 @@ public class User {
             inverseJoinColumns = {@JoinColumn(name = "roleId")})
     private Set<Role> roleSet;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "createdUser")
-    @JsonIgnoreProperties
-    private Set<Post> postSet;
 }

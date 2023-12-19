@@ -2,6 +2,8 @@ package com.example.facebookbackend.controllers;
 
 import com.example.facebookbackend.dtos.request.AddFriendRequest;
 import com.example.facebookbackend.dtos.response.MessageResponse;
+import com.example.facebookbackend.entities.User;
+import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.FriendServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,38 +21,38 @@ public class FriendControllers {
     @PostMapping(path = "/request/AddNew")
     public ResponseEntity<MessageResponse> sendAddFriendRequest(@AuthenticationPrincipal UserDetails userDetails,
                                                                 @RequestBody AddFriendRequest addFriendRequest) {
-        String fromEmail = userDetails.getUsername();
-        return friendServices.createAddFriendRequest(fromEmail, addFriendRequest);
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return friendServices.createAddFriendRequest(currentUser, addFriendRequest);
     }
 
     @GetMapping(path = "/request/Sent")
     public ResponseEntity<?> getSentAddFriendRequestList(@AuthenticationPrincipal UserDetails userDetails,
                                                          @RequestParam(required = false, defaultValue = "0") Integer page,
                                                          @RequestParam(required = false, defaultValue = "5") Integer size) {
-        String email = userDetails.getUsername();
-        return ResponseEntity.ok().body(friendServices.getSentAddFriendRequestList(email, page, size));
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return ResponseEntity.ok().body(friendServices.getSentAddFriendRequestList(currentUser, page, size));
     }
 
     @GetMapping(path = "/request/Received")
     public ResponseEntity<?> getReceivedAddFriendRequestList(@AuthenticationPrincipal UserDetails userDetails,
                                                              @RequestParam(required = false, defaultValue = "0") Integer page,
                                                              @RequestParam(required = false, defaultValue = "5") Integer size) {
-        String email = userDetails.getUsername();
-        return ResponseEntity.ok().body(friendServices.getReceivedAddFriendRequestList(email, page, size));
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return ResponseEntity.ok().body(friendServices.getReceivedAddFriendRequestList(currentUser, page, size));
     }
 
     @PostMapping(path = "/request")
     public ResponseEntity<?> respondFriendRequest(@AuthenticationPrincipal UserDetails userDetails,
                                                   @RequestParam int id,
                                                   @RequestParam Boolean isAccept) {
-        String email = userDetails.getUsername();
-        return friendServices.respondFriendRequest(email, id, isAccept);
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return friendServices.respondFriendRequest(currentUser, id, isAccept);
     }
     @GetMapping(path = "/request")
     public ResponseEntity<?> getFriendRequest(@AuthenticationPrincipal UserDetails userDetails,
                                                   @RequestParam int id) {
-        String email = userDetails.getUsername();
-        return friendServices.respondFriendRequest(email, id, null);
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return friendServices.respondFriendRequest(currentUser, id, null);
     }
 
     @GetMapping(path = "/getFriendList")
@@ -58,8 +60,8 @@ public class FriendControllers {
                                                @RequestParam(required = false, defaultValue = "0") Integer page,
                                                @RequestParam(required = false, defaultValue = "5") Integer size
     ) {
-        String email = userDetails.getUsername();
-        return ResponseEntity.ok().body(friendServices.getUserFriendList(email, page, size));
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return ResponseEntity.ok().body(friendServices.getUserFriendList(currentUser, page, size));
     }
 
 }
