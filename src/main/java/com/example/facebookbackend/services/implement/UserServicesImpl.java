@@ -94,13 +94,23 @@ public class UserServicesImpl implements UserServices {
     }
 
     @Override
-    public ResponseEntity<?> getUser(String email) {
+    public ResponseEntity<?> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty() || !user.get().isEnable()) {
             return ResponseEntity.badRequest().body(new MessageResponse("Không tồn tại người dùng có email: " + email));
         } else {
             UserDto userDto = modelMapper.map(user.get(), UserDto.class);
             return ResponseEntity.ok().body(userDto);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getUserById(Integer userId) {
+        Optional<User> user=userRepository.findById(userId);
+        if (user.isEmpty()||!user.get().isEnable()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id: "+userId));
+        }else {
+            return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(user.get(), UserDto.class));
         }
     }
 

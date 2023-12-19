@@ -21,7 +21,12 @@ public class UserControllers {
 
     @GetMapping(path = "/FindUser")
     public ResponseEntity<?> getUser(@RequestParam String userEmail){
-        return userServices.getUser(userEmail);
+        return userServices.getUserByEmail(userEmail);
+    }
+
+    @GetMapping(path = "")
+    public ResponseEntity<?> getUser(@RequestParam Integer id){
+        return userServices.getUserById(id);
     }
 
 }

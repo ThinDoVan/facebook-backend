@@ -13,6 +13,6 @@ import java.util.List;
 public interface UserServices {
     ResponseEntity<MessageResponse> registerAccount(RegisterRequest registerRequest);
     ResponseEntity<?> loginAccount(LoginRequest loginRequest);
-    ResponseEntity<?> getUser(String email);
-
+    ResponseEntity<?> getUserByEmail(String email);
+    ResponseEntity<?> getUserById(Integer userId);
 }
