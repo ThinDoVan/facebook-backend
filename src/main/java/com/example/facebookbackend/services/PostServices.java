@@ -5,12 +5,13 @@ import com.example.facebookbackend.dtos.response.MessageResponse;
 import org.springframework.http.ResponseEntity;
 
 public interface PostServices {
-    ResponseEntity<MessageResponse> createPost(String email, PostRequest postRequest);
+    ResponseEntity<MessageResponse> createPost(String currentUserEmail, PostRequest postRequest);
 
-    ResponseEntity<?> getPost(String email, int postId);
+    ResponseEntity<?> getPost(String currentUserEmail, int postId);
+    ResponseEntity<?> getUserPostList(String currentUserEmail, Integer userId, Integer page, Integer size);
 
-    ResponseEntity<MessageResponse> updatePost(String email, Integer postId, PostRequest postRequest);
+    ResponseEntity<MessageResponse> updatePost(String currentUserEmail, Integer postId, PostRequest postRequest);
 
-    ResponseEntity<MessageResponse> deletePost(String email, Integer postId);
+    ResponseEntity<MessageResponse> deletePost(String currentUserEmail, Integer postId);
 
 }

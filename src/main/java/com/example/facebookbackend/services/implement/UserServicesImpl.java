@@ -97,7 +97,7 @@ public class UserServicesImpl implements UserServices {
     public ResponseEntity<?> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty() || !user.get().isEnable()) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Không tồn tại người dùng có email: " + email));
+            return ResponseEntity.badRequest().body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
         } else {
             UserDto userDto = modelMapper.map(user.get(), UserDto.class);
             return ResponseEntity.ok().body(userDto);

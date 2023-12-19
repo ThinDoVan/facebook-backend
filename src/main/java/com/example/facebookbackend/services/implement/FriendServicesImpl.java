@@ -40,9 +40,9 @@ public class FriendServicesImpl implements FriendServices {
         Optional<User> sender = userRepository.findByEmail(sentEmail);
         Optional<User> receiver = userRepository.findByEmail(addFriendRequest.getToUserEmail());
         if (sender.isEmpty() || !sender.get().isEnable()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại người dùng có email: " + sentEmail));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email: " + sentEmail));
         } else if (receiver.isEmpty() || !receiver.get().isEnable()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại người dùng có email: " + addFriendRequest.getToUserEmail()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email: " + addFriendRequest.getToUserEmail()));
         } else if (sender.equals(receiver)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Không thể tự kết bạn với chính mình"));
         } else {
@@ -78,7 +78,7 @@ public class FriendServicesImpl implements FriendServices {
     public ResponseEntity<?> getSentAddFriendRequestList(String email, Integer page, Integer size) {
         Optional<User> sentUser = userRepository.findByEmail(email);
         if (sentUser.isEmpty() || !sentUser.get().isEnable()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại người dùng có email: " + email));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
         } else {
             List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
             for (FriendRequest result : friendRequestRepository.findFriendRequestsBySender(sentUser.get())) {
@@ -92,7 +92,7 @@ public class FriendServicesImpl implements FriendServices {
     public ResponseEntity<?> getReceivedAddFriendRequestList(String email, Integer page, Integer size) {
         Optional<User> receivedUser = userRepository.findByEmail(email);
         if (receivedUser.isEmpty() || !receivedUser.get().isEnable()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại người dùng có email: " + email));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
         } else {
             List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
             for (FriendRequest result : friendRequestRepository.findFriendRequestsByReceiver(receivedUser.get())) {
@@ -106,11 +106,11 @@ public class FriendServicesImpl implements FriendServices {
     public ResponseEntity<?> respondFriendRequest(String email, int id, Boolean isAccept) {
         Optional<FriendRequest> friendRequest = friendRequestRepository.findById(id);
         if (friendRequest.isEmpty()) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Không tồn tại request có id: " + id));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy request có id: " + id));
         } else {
             Optional<User> receivedUser = userRepository.findByEmail(email);
             if (receivedUser.isEmpty() || !receivedUser.get().isEnable()) {
-                return ResponseEntity.badRequest().body(new MessageResponse("Không tồn tại người dùng có email: " + email));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
             } else {
                 if (friendRequest.get().getReceiver().equals(receivedUser.get())) {
                     if (isAccept != null) {
@@ -124,8 +124,9 @@ public class FriendServicesImpl implements FriendServices {
                         //Xóa cứng FriendReq
                         friendRequestRepository.delete(friendRequest.get());
                         return ResponseEntity.ok().body(new MessageResponse("Bạn đã từ chối lời mời kết bạn từ " + friendRequest.get().getSender().getFullName()));
+                    }else {
+                        return ResponseEntity.ok().body(modelMapper.map(friendRequest.get(),FriendRequestDto.class));
                     }
-                    return ResponseEntity.ok().body(friendRequest.get());
                 } else {
                     return ResponseEntity.ok().body(new MessageResponse("Bạn không có lời mời kết bạn này"));
                 }
@@ -137,7 +138,7 @@ public class FriendServicesImpl implements FriendServices {
     public ResponseEntity<?> getUserFriendList(String email, Integer page, Integer size) {
         Optional<User> user = userRepository.findByEmail(email);
         if (user.isEmpty() || !user.get().isEnable()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tồn tại người dùng có email: " + email));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
         } else {
             List<FriendshipDto> friendRequestDtoList = new ArrayList<>();
             for (Friendship result : friendshipRepository.findByUser1(user.get())) {

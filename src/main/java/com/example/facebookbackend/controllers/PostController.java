@@ -30,6 +30,15 @@ public class PostController {
         return postServices.getPost(email, postId);
     }
 
+    @GetMapping(path = "/GetPostList")
+    public ResponseEntity<?> getUserPostList(@AuthenticationPrincipal UserDetails userDetails,
+                                             @RequestParam Integer userId,
+                                             @RequestParam(required = false, defaultValue = "0") Integer page,
+                                             @RequestParam(required = false, defaultValue = "5") Integer size) {
+        String email = userDetails.getUsername();
+        return postServices.getUserPostList(email, userId, page, size);
+    }
+
     @PutMapping(path = "/UpdatePost")
     public ResponseEntity<MessageResponse> updatePost(@AuthenticationPrincipal UserDetails userDetails,
                                                       @RequestParam Integer postId,
