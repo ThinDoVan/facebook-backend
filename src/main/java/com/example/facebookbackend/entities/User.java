@@ -1,6 +1,7 @@
 package com.example.facebookbackend.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -40,6 +41,4 @@ public class User {
             inverseJoinColumns = {@JoinColumn(name = "roleId")})
     private Set<Role> roleSet;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "createdUser")
-    Set<Post> postSet;
 }

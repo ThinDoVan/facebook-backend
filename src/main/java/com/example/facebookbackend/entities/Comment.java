@@ -1,5 +1,6 @@
 package com.example.facebookbackend.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -22,9 +23,16 @@ public class Comment {
     @ManyToOne
     @JoinColumn(name = "userId")
     @JsonIgnoreProperties
-    private User user;
+    private User createdUser;
 
-    private String content;
+    private boolean deleted = false;
+
+    private LocalDateTime deletedTime;
+
+    @ManyToOne
+    @JoinColumn(name = "deletedByUserId")
+    @JsonBackReference
+    private User deletedUser;
 
     private LocalDateTime createdTime;
 

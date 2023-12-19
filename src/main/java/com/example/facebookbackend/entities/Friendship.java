@@ -26,6 +26,9 @@ public class Friendship {
 
     private LocalDateTime since;
 
+    public Friendship() {
+    }
+
     public Friendship(User user1, User user2, LocalDateTime since) {
         this.user1 = user1;
         this.user2 = user2;

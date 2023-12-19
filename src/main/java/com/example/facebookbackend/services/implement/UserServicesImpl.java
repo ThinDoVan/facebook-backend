@@ -1,12 +1,10 @@
 package com.example.facebookbackend.services.implement;
 
-import com.example.facebookbackend.dtos.request.AddFriendRequest;
 import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
 import com.example.facebookbackend.dtos.response.JwtResponse;
 import com.example.facebookbackend.dtos.response.MessageResponse;
-import com.example.facebookbackend.dtos.response.UserResponse;
-import com.example.facebookbackend.entities.FriendRequest;
+import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.entities.Role;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.ERole;
@@ -16,11 +14,14 @@ import com.example.facebookbackend.repositories.UserRepository;
 import com.example.facebookbackend.securities.jwt.JwtUtils;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.UserServices;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,12 +36,13 @@ import java.util.stream.Collectors;
 @Service
 public class UserServicesImpl implements UserServices {
     @Autowired
+    ModelMapper modelMapper;
+    @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
     JwtUtils jwtUtils;
-
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -52,10 +53,10 @@ public class UserServicesImpl implements UserServices {
     @Override
     public ResponseEntity<MessageResponse> registerAccount(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Email này đã được sử dụng"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Email này đã được sử dụng"));
         }
         if (registerRequest.getDateOfBirth() != null && registerRequest.getDateOfBirth().isAfter(LocalDate.now())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Ngày sinh không hợp lệ"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Ngày sinh không hợp lệ"));
         }
 
         User user = new User();
@@ -75,29 +76,41 @@ public class UserServicesImpl implements UserServices {
         user.setCreatedTime(LocalDateTime.now());
 
         userRepository.save(user);
-        return ResponseEntity.ok().body(new MessageResponse("Tạo tài khoản thành công"));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo tài khoản thành công"));
     }
 
     @Override
     public ResponseEntity<?> loginAccount(LoginRequest loginRequest) {
-        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        try{
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String jwt = jwtUtils.generateJwtToken(authentication);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         Set<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).collect(Collectors.toSet());
-        return ResponseEntity.ok().body(new JwtResponse(jwt, userDetails.getUsername(), roles));
+        return ResponseEntity.status(HttpStatus.OK).body(new JwtResponse(jwt, userDetails.getUsername(), roles));
+        }catch (AuthenticationException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Đăng nhập thất bại."));
+        }
     }
 
     @Override
-    public ResponseEntity<?> getUser(String email) {
+    public ResponseEntity<?> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty() || user.get().isEnable() == false) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Không tồn tại người dùng có email: " + email));
+        if (user.isEmpty() || !user.get().isEnable()) {
+            return ResponseEntity.badRequest().body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
         } else {
-            return ResponseEntity.ok().body(new UserResponse(user.get().getUserId(),
-                    user.get().getFullName(),
-                    user.get().getDateOfBirth(),
-                    user.get().getGender()));
+            UserDto userDto = modelMapper.map(user.get(), UserDto.class);
+            return ResponseEntity.ok().body(userDto);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getUserById(Integer userId) {
+        Optional<User> user=userRepository.findById(userId);
+        if (user.isEmpty()||!user.get().isEnable()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id: "+userId));
+        }else {
+            return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(user.get(), UserDto.class));
         }
     }
 

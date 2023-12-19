@@ -1,7 +1,6 @@
 package com.example.facebookbackend.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,27 +9,21 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "postVersion")
+@Table(name = "commentVersion")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostVersion {
+public class CommentVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int postVersionId;
+    private int commentVersionId;
 
     @ManyToOne
-    @JoinColumn(name = "postId")
-@JsonBackReference
-    private Post post;
+    @JoinColumn(name = "commentId")
+    @JsonBackReference
+    private Comment comment;
 
     private String content;
 
     private LocalDateTime modifiedTime;
-
-    public PostVersion(Post post, String content, LocalDateTime modifiedTime) {
-        this.post = post;
-        this.content = content;
-        this.modifiedTime = modifiedTime;
-    }
 }
