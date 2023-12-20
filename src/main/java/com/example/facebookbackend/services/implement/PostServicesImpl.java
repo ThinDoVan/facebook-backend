@@ -116,7 +116,7 @@ public class PostServicesImpl implements PostServices {
         if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId));
         } else {
-            if (!checkEditPermission(currentUser, post.get())) {
+            if (!checkEditPermission(currentUser, post.get().getCreatedUser())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền sửa bài viết này"));
             } else {
                 if (postRequest.getAudience() != null) {
@@ -145,7 +145,7 @@ public class PostServicesImpl implements PostServices {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId));
         } else {
 
-            if (checkDeletePermission(currentUser, post.get())) {
+            if (checkDeletePermission(currentUser, post.get().getCreatedUser())) {
                 post.get().setDeleted(true);
                 post.get().setDeletedUser(currentUser);
                 post.get().setDeletedTime(LocalDateTime.now());
@@ -180,12 +180,15 @@ public class PostServicesImpl implements PostServices {
         return user.getRoleSet().contains(roleRepository.findByRole(ERole.ROLE_ADMIN).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role")));
     }
 
-    private boolean checkEditPermission(User user, Post post) {
-        return user.equals(post.getCreatedUser());
+    private boolean isAuthor(User user, User author){
+        return user.equals(author);
+    }
+    private boolean checkEditPermission(User user, User author) {
+        return isAuthor(user, author);
     }
 
-    private boolean checkDeletePermission(User user, Post post) {
-        return user.equals(post.getCreatedUser())
+    private boolean checkDeletePermission(User user, User author) {
+        return isAuthor(user, author)
                 || isAdmin(user);
     }
 
