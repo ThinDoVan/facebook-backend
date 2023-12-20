@@ -48,9 +48,10 @@ public class FriendControllers {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return friendServices.respondFriendRequest(currentUser, id, isAccept);
     }
+
     @GetMapping(path = "/request")
     public ResponseEntity<?> getFriendRequest(@AuthenticationPrincipal UserDetails userDetails,
-                                                  @RequestParam int id) {
+                                              @RequestParam int id) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return friendServices.respondFriendRequest(currentUser, id, null);
     }
@@ -58,8 +59,7 @@ public class FriendControllers {
     @GetMapping(path = "/getFriendList")
     public ResponseEntity<?> getUserFriendList(@AuthenticationPrincipal UserDetails userDetails,
                                                @RequestParam(required = false, defaultValue = "0") Integer page,
-                                               @RequestParam(required = false, defaultValue = "5") Integer size
-    ) {
+                                               @RequestParam(required = false, defaultValue = "5") Integer size) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return ResponseEntity.ok().body(friendServices.getUserFriendList(currentUser, page, size));
     }

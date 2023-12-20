@@ -1,7 +1,6 @@
 package com.example.facebookbackend.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -21,7 +20,7 @@ public class PostVersion {
 
     @ManyToOne
     @JoinColumn(name = "postId")
-@JsonBackReference
+    @JsonBackReference
     private Post post;
 
     private String content;

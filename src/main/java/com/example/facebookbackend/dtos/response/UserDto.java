@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class UserDto {
     private int userId;

@@ -1,17 +1,22 @@
 package com.example.facebookbackend.services.implement;
 
 import com.example.facebookbackend.dtos.request.CommentRequest;
+import com.example.facebookbackend.dtos.response.CommentDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.*;
-import com.example.facebookbackend.enums.ERole;
 import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.ReactServices;
+import com.example.facebookbackend.utils.AccessControlUtils;
+import com.example.facebookbackend.utils.ResponseUtils;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -33,7 +38,13 @@ public class ReactServicesImpl implements ReactServices {
     @Autowired
     CommentVersionRepository commentVersionRepository;
 
-    //Kiểm tra đã like trước đó hay chưa
+    @Autowired
+    ModelMapper modelMapper;
+    @Autowired
+    AccessControlUtils accessControlUtils;
+    @Autowired
+    ResponseUtils responseUtils;
+
     @Override
     public ResponseEntity<MessageResponse> likePost(User currentUser, Integer postId) {
         Optional<Post> post = postRepository.findById(postId);
@@ -43,7 +54,7 @@ public class ReactServicesImpl implements ReactServices {
             if (likePostRepository.findByPostAndUser(post.get(), currentUser).isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bài viết này trước đây"));
             } else {
-                if (checkReadPermission(currentUser, post.get())) {
+                if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
                     LikePost likePost = new LikePost();
                     likePost.setPost(post.get());
                     likePost.setUser(currentUser);
@@ -63,21 +74,19 @@ public class ReactServicesImpl implements ReactServices {
         if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + commentRequest.getRepliedItemId()));
         } else {
-            if (checkReadPermission(currentUser, post.get())) {
+            if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Bình luận thiếu nội dung"));
                 } else {
-                    Comment comment = new Comment();
-                    comment.setPost(post.get());
-                    comment.setParentComment(null);
-                    comment.setCreatedUser(currentUser);
-                    comment.setCreatedTime(LocalDateTime.now());
+                    Comment comment = new Comment(post.get(),
+                            currentUser,
+                            LocalDateTime.now(),
+                            null);
                     commentRepository.save(comment);
 
-                    CommentVersion commentVersion = new CommentVersion();
-                    commentVersion.setComment(comment);
-                    commentVersion.setContent(commentRequest.getContent());
-                    commentVersion.setModifiedTime(comment.getCreatedTime());
+                    CommentVersion commentVersion = new CommentVersion(comment,
+                            commentRequest.getContent(),
+                            comment.getCreatedTime());
                     commentVersionRepository.save(commentVersion);
                     return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn đã bình luận bài viết"));
                 }
@@ -96,7 +105,7 @@ public class ReactServicesImpl implements ReactServices {
             if (likeCommentRepository.findByCommentAndUser(comment.get(), currentUser).isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bình luận này trước đây"));
             } else {
-                if (checkReadPermission(currentUser, comment.get().getPost())) {
+                if (accessControlUtils.checkReadPermission(currentUser, comment.get().getPost())) {
                     LikeComment likeComment = new LikeComment();
                     likeComment.setComment(comment.get());
                     likeComment.setUser(currentUser);
@@ -116,21 +125,19 @@ public class ReactServicesImpl implements ReactServices {
         if (parentComment.isEmpty() || parentComment.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId()));
         } else {
-            if (checkReadPermission(currentUser, parentComment.get().getPost())) {
+            if (accessControlUtils.checkReadPermission(currentUser, parentComment.get().getPost())) {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Bình luận thiếu nội dung"));
                 } else {
-                    Comment comment = new Comment();
-                    comment.setPost(parentComment.get().getPost());
-                    comment.setParentComment(parentComment.get());
-                    comment.setCreatedUser(currentUser);
-                    comment.setCreatedTime(LocalDateTime.now());
+                    Comment comment = new Comment(parentComment.get().getPost(),
+                            currentUser,
+                            LocalDateTime.now(),
+                            parentComment.get());
                     commentRepository.save(comment);
 
-                    CommentVersion commentVersion = new CommentVersion();
-                    commentVersion.setComment(comment);
-                    commentVersion.setContent(commentRequest.getContent());
-                    commentVersion.setModifiedTime(comment.getCreatedTime());
+                    CommentVersion commentVersion = new CommentVersion(comment,
+                            commentRequest.getContent(),
+                            comment.getCreatedTime());
                     commentVersionRepository.save(commentVersion);
 
                     return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn đã trả lời bình luận"));
@@ -147,14 +154,14 @@ public class ReactServicesImpl implements ReactServices {
         if (comment.isEmpty() || comment.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId()));
         } else {
-            if (checkEditPermission(currentUser, comment.get().getCreatedUser())) {
+            if (accessControlUtils.checkEditPermission(currentUser, comment.get().getCreatedUser())) {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Bình luận thiếu nội dung"));
                 } else {
-                    CommentVersion commentVersion = new CommentVersion();
-                    commentVersion.setComment(comment.get());
-                    commentVersion.setContent(commentRequest.getContent());
-                    commentVersion.setModifiedTime(comment.get().getCreatedTime());
+                    CommentVersion commentVersion = new CommentVersion(comment.get(),
+                            commentRequest.getContent(),
+                            LocalDateTime.now()
+                    );
                     commentVersionRepository.save(commentVersion);
                     return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Sửa bình luận thành công"));
                 }
@@ -170,7 +177,7 @@ public class ReactServicesImpl implements ReactServices {
         if (comment.isEmpty() || comment.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentId));
         } else {
-            if (checkDeletePermission(currentUser, comment.get().getCreatedUser())) {
+            if (accessControlUtils.checkDeletePermission(currentUser, comment.get().getCreatedUser())) {
                 comment.get().setDeleted(true);
                 comment.get().setDeletedTime(LocalDateTime.now());
                 comment.get().setDeletedUser(currentUser);
@@ -182,42 +189,51 @@ public class ReactServicesImpl implements ReactServices {
         }
     }
 
-    private boolean isFriend(User user, User authorUser) {
-        return (friendshipRepository.findByUser1AndUser2(user, authorUser) != null)
-                || (friendshipRepository.findByUser1AndUser2(authorUser, user) != null);
-    }
+//    @Override
+//    public ResponseEntity<?> getPostComments(User currentUser, Integer postId, Integer page, Integer size) {
+//        Optional<Post> post = postRepository.findById(postId);
+//        if (post.isEmpty() || post.get().isDeleted()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
+//        } else {
+//            if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
+//                List<CommentDto> commentDtoList = new ArrayList<>();
+//                List<Comment> commentList = commentRepository.findByPost(post.get());
+//                if (commentList.size() > 0) {
+//                    for (Comment comment : commentList) {
+//                        commentDtoList.add(responseUtils.getParrentComment(comment));
+//                    }
+//                    return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(commentDtoList, page, size));
+//                } else {
+//                    return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Bài viết vẫn chưa có bình luận"));
+//                }
+//            } else {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền xem bình luận");
+//            }
+//        }
+//    }
 
-    private boolean isAdmin(User user) {
-        return user.getRoleSet().contains(roleRepository.findByRole(ERole.ROLE_ADMIN).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role")));
-    }
-
-    private boolean isAuthor(User user, User author){
-        return user.equals(author);
-    }
-    private boolean checkEditPermission(User user, User author) {
-        return isAuthor(user, author);
-    }
-
-    private boolean checkDeletePermission(User user, User author) {
-        return isAuthor(user, author)
-                || isAdmin(user);
-    }
-
-    private boolean checkReadPermission(User user, Post post) {
-        if ((user.equals(post.getCreatedUser()))
-                || (isAdmin(user))) {
-            return true;
+    @Override
+    public ResponseEntity<?> getPostComments(User currentUser, Integer postId, Integer page, Integer size) {
+        Optional<Post> post = postRepository.findById(postId);
+        if (post.isEmpty() || post.get().isDeleted()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
         } else {
-            switch (post.getAudience().getAudienceType()) {
-                case ONLYME -> {
-                    return false;
+            if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
+                List<CommentDto> commentDtoList = new ArrayList<>();
+                List<Comment> commentList = commentRepository.findByPost(post.get()).stream()
+                        .filter(comment -> !comment.isDeleted())
+                        .filter(comment -> comment.getParentComment() == null)
+                        .toList();
+                if (!commentList.isEmpty()) {
+                    for (Comment comment : commentList) {
+                        commentDtoList.add(responseUtils.getChildComment(comment));
+                    }
+                    return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(commentDtoList, page, size));
+                } else {
+                    return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Bài viết vẫn chưa có bình luận"));
                 }
-                case FRIENDS -> {
-                    return isFriend(user, post.getCreatedUser());
-                }
-                default -> {
-                    return true;
-                }
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền xem bình luận");
             }
         }
     }

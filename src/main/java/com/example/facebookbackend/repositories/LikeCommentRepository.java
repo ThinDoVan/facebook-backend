@@ -13,4 +13,5 @@ import java.util.Optional;
 @Repository
 public interface LikeCommentRepository extends JpaRepository<LikeComment, Integer> {
     Optional<LikeComment> findByCommentAndUser(Comment comment, User user);
+    List<LikeComment> findByComment(Comment comment);
 }

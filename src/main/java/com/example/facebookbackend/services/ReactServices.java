@@ -12,4 +12,5 @@ public interface ReactServices {
     ResponseEntity<MessageResponse> replyComment(User currentUser, CommentRequest commentRequest);
     ResponseEntity<MessageResponse> updateComment(User currentUser, CommentRequest commentRequest);
     ResponseEntity<MessageResponse> deleteComment(User currentUser, Integer commentId);
+    ResponseEntity<?> getPostComments(User currentUser, Integer postId, Integer page, Integer size);
 }

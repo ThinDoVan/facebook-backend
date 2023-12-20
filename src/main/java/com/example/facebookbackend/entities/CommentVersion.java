@@ -2,7 +2,6 @@ package com.example.facebookbackend.entities;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +11,6 @@ import java.time.LocalDateTime;
 @Table(name = "commentVersion")
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class CommentVersion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -26,4 +24,10 @@ public class CommentVersion {
     private String content;
 
     private LocalDateTime modifiedTime;
+
+    public CommentVersion(Comment comment, String content, LocalDateTime modifiedTime) {
+        this.comment = comment;
+        this.content = content;
+        this.modifiedTime = modifiedTime;
+    }
 }

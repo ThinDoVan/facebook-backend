@@ -3,12 +3,14 @@ package com.example.facebookbackend.entities;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "friendship")
 @Data
+@NoArgsConstructor
 public class Friendship {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +27,6 @@ public class Friendship {
     private User user2;
 
     private LocalDateTime since;
-
-    public Friendship() {
-    }
 
     public Friendship(User user1, User user2, LocalDateTime since) {
         this.user1 = user1;

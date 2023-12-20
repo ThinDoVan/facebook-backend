@@ -7,7 +7,8 @@ import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.FriendRequest;
 import com.example.facebookbackend.entities.Friendship;
 import com.example.facebookbackend.entities.User;
-import com.example.facebookbackend.helper.ResponseUtils;
+import com.example.facebookbackend.utils.AccessControlUtils;
+import com.example.facebookbackend.utils.ResponseUtils;
 import com.example.facebookbackend.repositories.FriendRequestRepository;
 import com.example.facebookbackend.repositories.FriendshipRepository;
 import com.example.facebookbackend.repositories.UserRepository;
@@ -34,8 +35,11 @@ public class FriendServicesImpl implements FriendServices {
     @Autowired
     FriendshipRepository friendshipRepository;
 
+    @Autowired
+    AccessControlUtils accessControlUtils;
+    @Autowired
+    ResponseUtils responseUtils;
 
-    @Override
     public ResponseEntity<MessageResponse> createAddFriendRequest(User sender, AddFriendRequest addFriendRequest) {
 
         Optional<User> receiver = userRepository.findByEmail(addFriendRequest.getToUserEmail());
@@ -56,8 +60,7 @@ public class FriendServicesImpl implements FriendServices {
                     return ResponseEntity.badRequest().body(new MessageResponse("Bạn đã gửi lời mời kết bạn đến người này. Hãy chờ họ đồng ý"));
                 }
             }
-            if ((friendshipRepository.findByUser1AndUser2(sender, receiver.get()) != null)
-                    || friendshipRepository.findByUser1AndUser2(receiver.get(), receiver.get()) != null) {
+            if (accessControlUtils.isFriend(receiver.get(), sender)) {
                 return ResponseEntity.badRequest().body(new MessageResponse("Bạn và người này đã là bạn bè"));
             }
             if (addFriendRequest.getMessage() == null || addFriendRequest.getMessage().isEmpty()) {
@@ -75,22 +78,22 @@ public class FriendServicesImpl implements FriendServices {
     @Override
     public ResponseEntity<?> getSentAddFriendRequestList(User currentUser, Integer page, Integer size) {
 
-            List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
-            for (FriendRequest result : friendRequestRepository.findFriendRequestsBySender(currentUser)) {
-                friendRequestDtoList.add(modelMapper.map(result, FriendRequestDto.class));
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(ResponseUtils.pagingList(friendRequestDtoList, page, size));
+        List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
+        for (FriendRequest result : friendRequestRepository.findFriendRequestsBySender(currentUser)) {
+            friendRequestDtoList.add(modelMapper.map(result, FriendRequestDto.class));
         }
+        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+    }
 
     @Override
     public ResponseEntity<?> getReceivedAddFriendRequestList(User currentUser, Integer page, Integer size) {
 
-            List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
-            for (FriendRequest result : friendRequestRepository.findFriendRequestsByReceiver(currentUser)) {
-                friendRequestDtoList.add(modelMapper.map(result, FriendRequestDto.class));
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(ResponseUtils.pagingList(friendRequestDtoList, page, size));
+        List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
+        for (FriendRequest result : friendRequestRepository.findFriendRequestsByReceiver(currentUser)) {
+            friendRequestDtoList.add(modelMapper.map(result, FriendRequestDto.class));
         }
+        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+    }
 
 
     @Override
@@ -99,38 +102,38 @@ public class FriendServicesImpl implements FriendServices {
         if (friendRequest.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy request có id: " + id));
         } else {
-                if (friendRequest.get().getReceiver().equals(currentUser)) {
-                    if (isAccept != null) {
-                        if (isAccept) {
-                            //Thêm Friendship
-                            Friendship friendship = new Friendship(friendRequest.get().getSender(), friendRequest.get().getReceiver(), LocalDateTime.now());
-                            friendshipRepository.save(friendship);
-                            friendRequestRepository.delete(friendRequest.get());
-                            return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn và " + friendRequest.get().getSender().getFullName() + " đã trở thành bạn bè"));
-                        }
-                        //Xóa cứng FriendReq
+            if (friendRequest.get().getReceiver().equals(currentUser)) {
+                if (isAccept != null) {
+                    if (isAccept) {
+                        //Thêm Friendship
+                        Friendship friendship = new Friendship(friendRequest.get().getSender(), friendRequest.get().getReceiver(), LocalDateTime.now());
+                        friendshipRepository.save(friendship);
                         friendRequestRepository.delete(friendRequest.get());
-                        return ResponseEntity.ok().body(new MessageResponse("Bạn đã từ chối lời mời kết bạn từ " + friendRequest.get().getSender().getFullName()));
-                    }else {
-                        return ResponseEntity.ok().body(modelMapper.map(friendRequest.get(),FriendRequestDto.class));
+                        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn và " + friendRequest.get().getSender().getFullName() + " đã trở thành bạn bè"));
                     }
+                    //Xóa cứng FriendReq
+                    friendRequestRepository.delete(friendRequest.get());
+                    return ResponseEntity.ok().body(new MessageResponse("Bạn đã từ chối lời mời kết bạn từ " + friendRequest.get().getSender().getFullName()));
                 } else {
-                    return ResponseEntity.ok().body(new MessageResponse("Bạn không có lời mời kết bạn này"));
+                    return ResponseEntity.ok().body(modelMapper.map(friendRequest.get(), FriendRequestDto.class));
                 }
+            } else {
+                return ResponseEntity.ok().body(new MessageResponse("Bạn không có lời mời kết bạn này"));
             }
         }
+    }
 
 
     @Override
     public ResponseEntity<?> getUserFriendList(User currentUser, Integer page, Integer size) {
 
-            List<FriendshipDto> friendRequestDtoList = new ArrayList<>();
-            for (Friendship result : friendshipRepository.findByUser1(currentUser)) {
-                friendRequestDtoList.add(modelMapper.map(result, FriendshipDto.class));
-            }
-            for (Friendship result : friendshipRepository.findByUser2(currentUser)) {
-                friendRequestDtoList.add(modelMapper.map(result, FriendshipDto.class));
-            }
-            return ResponseEntity.status(HttpStatus.OK).body(ResponseUtils.pagingList(friendRequestDtoList, page, size));
+        List<FriendshipDto> friendRequestDtoList = new ArrayList<>();
+        for (Friendship result : friendshipRepository.findByUser1(currentUser)) {
+            friendRequestDtoList.add(modelMapper.map(result, FriendshipDto.class));
         }
+        for (Friendship result : friendshipRepository.findByUser2(currentUser)) {
+            friendRequestDtoList.add(modelMapper.map(result, FriendshipDto.class));
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
     }
+}

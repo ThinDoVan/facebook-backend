@@ -57,6 +57,14 @@ public class ReactControllers {
                                            @RequestParam Integer commentId){
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return reactServices.deleteComment(currentUser, commentId);
+    }
 
+    @GetMapping(path = "/GetCommentList")
+    public ResponseEntity<?> getPostComments(@AuthenticationPrincipal UserDetails userDetails,
+                                            @RequestParam Integer postId,
+                                            @RequestParam(required = false, defaultValue = "0") Integer page,
+                                            @RequestParam(required = false, defaultValue = "5") Integer size){
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return reactServices.getPostComments(currentUser, postId, page, size);
     }
 }
