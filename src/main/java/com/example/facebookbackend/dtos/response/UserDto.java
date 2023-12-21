@@ -1,6 +1,5 @@
 package com.example.facebookbackend.dtos.response;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

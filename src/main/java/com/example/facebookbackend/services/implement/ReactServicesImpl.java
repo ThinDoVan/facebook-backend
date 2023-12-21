@@ -8,7 +8,6 @@ import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.ReactServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
 import com.example.facebookbackend.utils.ResponseUtils;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +37,6 @@ public class ReactServicesImpl implements ReactServices {
     @Autowired
     CommentVersionRepository commentVersionRepository;
 
-    @Autowired
-    ModelMapper modelMapper;
     @Autowired
     AccessControlUtils accessControlUtils;
     @Autowired
@@ -188,29 +185,6 @@ public class ReactServicesImpl implements ReactServices {
             }
         }
     }
-
-//    @Override
-//    public ResponseEntity<?> getPostComments(User currentUser, Integer postId, Integer page, Integer size) {
-//        Optional<Post> post = postRepository.findById(postId);
-//        if (post.isEmpty() || post.get().isDeleted()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
-//        } else {
-//            if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
-//                List<CommentDto> commentDtoList = new ArrayList<>();
-//                List<Comment> commentList = commentRepository.findByPost(post.get());
-//                if (commentList.size() > 0) {
-//                    for (Comment comment : commentList) {
-//                        commentDtoList.add(responseUtils.getParrentComment(comment));
-//                    }
-//                    return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(commentDtoList, page, size));
-//                } else {
-//                    return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Bài viết vẫn chưa có bình luận"));
-//                }
-//            } else {
-//                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Bạn không có quyền xem bình luận");
-//            }
-//        }
-//    }
 
     @Override
     public ResponseEntity<?> getPostComments(User currentUser, Integer postId, Integer page, Integer size) {

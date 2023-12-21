@@ -12,7 +12,6 @@ import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.PostServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
 import com.example.facebookbackend.utils.ResponseUtils;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +26,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class PostServicesImpl implements PostServices {
-    @Autowired
-    ModelMapper modelMapper;
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -55,11 +52,14 @@ public class PostServicesImpl implements PostServices {
         Post post = new Post();
         post.setCreatedUser(currentUser);
         post.setCreatedTime(LocalDateTime.now());
-
-        switch (postRequest.getAudience().toLowerCase()) {
-            case "only me", "only_me", "onlyme" -> post.setAudience(getAudience(EAudience.ONLYME));
-            case "friends" -> post.setAudience(getAudience(EAudience.FRIENDS));
-            default -> post.setAudience(getAudience(EAudience.PUBLIC));
+        if (postRequest.getAudience() == null) {
+            post.setAudience(getAudience(EAudience.PUBLIC));
+        } else {
+            switch (postRequest.getAudience().toLowerCase()) {
+                case "only me", "only_me", "onlyme" -> post.setAudience(getAudience(EAudience.ONLYME));
+                case "friends" -> post.setAudience(getAudience(EAudience.FRIENDS));
+                default -> post.setAudience(getAudience(EAudience.PUBLIC));
+            }
         }
         postRepository.save(post);
 

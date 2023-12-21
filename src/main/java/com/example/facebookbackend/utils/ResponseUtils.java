@@ -1,8 +1,6 @@
 package com.example.facebookbackend.utils;
 
-import com.example.facebookbackend.dtos.response.CommentDto;
-import com.example.facebookbackend.dtos.response.PostDto;
-import com.example.facebookbackend.dtos.response.UserDto;
+import com.example.facebookbackend.dtos.response.*;
 import com.example.facebookbackend.entities.*;
 import com.example.facebookbackend.repositories.*;
 import org.modelmapper.ModelMapper;
@@ -43,6 +41,22 @@ public class ResponseUtils {
         int start = (int) pageRequest.getOffset();
         int end = Math.min((start + pageRequest.getPageSize()), list.size());
         return list.subList(start, end);
+    }
+
+    public FriendshipDto getFriendshipInfo(Friendship friendship) {
+        return modelMapper.map(friendship, FriendshipDto.class);
+    }
+
+    public FriendRequestDto getFriendRequestInfo(FriendRequest friendRequest) {
+        return modelMapper.map(friendRequest, FriendRequestDto.class);
+    }
+
+    public UserDto getUserInfo(User user) {
+        return modelMapper.map(user, UserDto.class);
+    }
+
+    public ImageDto getImageInfo(Image image) {
+        return new ImageDto(image.getPath(), this.getUserInfo(image.getUser()), image.getCreatedTime(), image.getImageType());
     }
 
     private CommentVersion getLastCommentVersion(Comment comment) {

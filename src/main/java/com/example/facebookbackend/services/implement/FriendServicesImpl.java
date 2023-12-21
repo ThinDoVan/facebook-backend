@@ -7,13 +7,12 @@ import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.FriendRequest;
 import com.example.facebookbackend.entities.Friendship;
 import com.example.facebookbackend.entities.User;
-import com.example.facebookbackend.utils.AccessControlUtils;
-import com.example.facebookbackend.utils.ResponseUtils;
 import com.example.facebookbackend.repositories.FriendRequestRepository;
 import com.example.facebookbackend.repositories.FriendshipRepository;
 import com.example.facebookbackend.repositories.UserRepository;
 import com.example.facebookbackend.services.FriendServices;
-import org.modelmapper.ModelMapper;
+import com.example.facebookbackend.utils.AccessControlUtils;
+import com.example.facebookbackend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,8 +25,7 @@ import java.util.Optional;
 
 @Service
 public class FriendServicesImpl implements FriendServices {
-    @Autowired
-    private ModelMapper modelMapper;
+
     @Autowired
     UserRepository userRepository;
     @Autowired
@@ -80,7 +78,7 @@ public class FriendServicesImpl implements FriendServices {
 
         List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
         for (FriendRequest result : friendRequestRepository.findFriendRequestsBySender(currentUser)) {
-            friendRequestDtoList.add(modelMapper.map(result, FriendRequestDto.class));
+            friendRequestDtoList.add(responseUtils.getFriendRequestInfo(result));
         }
         return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
     }
@@ -90,7 +88,7 @@ public class FriendServicesImpl implements FriendServices {
 
         List<FriendRequestDto> friendRequestDtoList = new ArrayList<>();
         for (FriendRequest result : friendRequestRepository.findFriendRequestsByReceiver(currentUser)) {
-            friendRequestDtoList.add(modelMapper.map(result, FriendRequestDto.class));
+            friendRequestDtoList.add(responseUtils.getFriendRequestInfo(result));
         }
         return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
     }
@@ -115,7 +113,7 @@ public class FriendServicesImpl implements FriendServices {
                     friendRequestRepository.delete(friendRequest.get());
                     return ResponseEntity.ok().body(new MessageResponse("Bạn đã từ chối lời mời kết bạn từ " + friendRequest.get().getSender().getFullName()));
                 } else {
-                    return ResponseEntity.ok().body(modelMapper.map(friendRequest.get(), FriendRequestDto.class));
+                    return ResponseEntity.ok().body(responseUtils.getFriendRequestInfo(friendRequest.get()));
                 }
             } else {
                 return ResponseEntity.ok().body(new MessageResponse("Bạn không có lời mời kết bạn này"));
@@ -129,10 +127,10 @@ public class FriendServicesImpl implements FriendServices {
 
         List<FriendshipDto> friendRequestDtoList = new ArrayList<>();
         for (Friendship result : friendshipRepository.findByUser1(currentUser)) {
-            friendRequestDtoList.add(modelMapper.map(result, FriendshipDto.class));
+            friendRequestDtoList.add(responseUtils.getFriendshipInfo(result));
         }
         for (Friendship result : friendshipRepository.findByUser2(currentUser)) {
-            friendRequestDtoList.add(modelMapper.map(result, FriendshipDto.class));
+            friendRequestDtoList.add(responseUtils.getFriendshipInfo(result));
         }
         return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
     }

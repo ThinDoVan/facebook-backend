@@ -1,7 +1,6 @@
 package com.example.facebookbackend.dtos.response;
 
 import com.example.facebookbackend.enums.EAudience;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
