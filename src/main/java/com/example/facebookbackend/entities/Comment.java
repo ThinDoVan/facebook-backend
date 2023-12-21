@@ -4,12 +4,14 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "comment")
 @Data
+@NoArgsConstructor
 public class Comment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,4 +43,10 @@ public class Comment {
     @JsonIgnoreProperties
     private Comment parentComment;
 
+    public Comment(Post post, User createdUser, LocalDateTime createdTime, Comment parentComment) {
+        this.post = post;
+        this.createdUser = createdUser;
+        this.createdTime = createdTime;
+        this.parentComment = parentComment;
+    }
 }

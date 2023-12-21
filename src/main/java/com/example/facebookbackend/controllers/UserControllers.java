@@ -1,7 +1,9 @@
 package com.example.facebookbackend.controllers;
 
+import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.UserServices;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -14,16 +16,16 @@ import org.springframework.web.bind.annotation.*;
 public class UserControllers {
     @Autowired
     UserServices userServices;
-
+    @Autowired
+    ModelMapper modelMapper;
 
     @GetMapping(path = "/FindUser")
-    public ResponseEntity<?> getUser(@RequestParam String userEmail){
+    public ResponseEntity<?> getUser(@RequestParam String userEmail) {
         return userServices.getUserByEmail(userEmail);
     }
 
     @GetMapping(path = "/CurrentUser")
-    public ResponseEntity<?> getUser(@AuthenticationPrincipal UserDetails userDetails){
-        return ResponseEntity.ok().body(((UserDetailsImpl) userDetails).getUser());
+    public ResponseEntity<?> getUser(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok().body(modelMapper.map(((UserDetailsImpl) userDetails).getUser(), UserDto.class));
     }
-
 }

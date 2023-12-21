@@ -4,24 +4,27 @@ import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
 import com.example.facebookbackend.dtos.response.JwtResponse;
 import com.example.facebookbackend.dtos.response.MessageResponse;
-import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.entities.Role;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.ERole;
 import com.example.facebookbackend.repositories.FriendRequestRepository;
+import com.example.facebookbackend.repositories.ImageRepository;
 import com.example.facebookbackend.repositories.RoleRepository;
 import com.example.facebookbackend.repositories.UserRepository;
 import com.example.facebookbackend.securities.jwt.JwtUtils;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.UserServices;
-import org.modelmapper.ModelMapper;
+import com.example.facebookbackend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,19 +39,25 @@ import java.util.stream.Collectors;
 @Service
 public class UserServicesImpl implements UserServices {
     @Autowired
-    ModelMapper modelMapper;
+    ResponseUtils responseUtils;
     @Autowired
     PasswordEncoder passwordEncoder;
     @Autowired
     AuthenticationManager authenticationManager;
     @Autowired
     JwtUtils jwtUtils;
+
     @Autowired
     UserRepository userRepository;
     @Autowired
     RoleRepository roleRepository;
     @Autowired
     FriendRequestRepository friendRequestRepository;
+    @Autowired
+    ImageRepository imageRepository;
+
+    @Autowired
+    MailSender mailSender;
 
     @Override
     public ResponseEntity<MessageResponse> registerAccount(RegisterRequest registerRequest) {
@@ -72,23 +81,23 @@ public class UserServicesImpl implements UserServices {
         roleSet.add(roleRepository.findByRole(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role")));
         user.setRoleSet(roleSet);
 
-        user.setEnable(true);
+        user.setEnable(false);
         user.setCreatedTime(LocalDateTime.now());
-
+//        sendEmail(user);
         userRepository.save(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo tài khoản thành công"));
     }
 
     @Override
     public ResponseEntity<?> loginAccount(LoginRequest loginRequest) {
-        try{
+        try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(authentication);
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-        Set<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority()).collect(Collectors.toSet());
-        return ResponseEntity.status(HttpStatus.OK).body(new JwtResponse(jwt, userDetails.getUsername(), roles));
-        }catch (AuthenticationException e){
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            String jwt = jwtUtils.generateJwtToken(authentication);
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            Set<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+            return ResponseEntity.status(HttpStatus.OK).body(new JwtResponse(jwt, userDetails.getUsername(), roles));
+        } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Đăng nhập thất bại."));
         }
     }
@@ -99,19 +108,28 @@ public class UserServicesImpl implements UserServices {
         if (user.isEmpty() || !user.get().isEnable()) {
             return ResponseEntity.badRequest().body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
         } else {
-            UserDto userDto = modelMapper.map(user.get(), UserDto.class);
-            return ResponseEntity.ok().body(userDto);
+
+            return ResponseEntity.ok().body(responseUtils.getUserInfo(user.get()));
         }
     }
 
     @Override
     public ResponseEntity<?> getUserById(Integer userId) {
-        Optional<User> user=userRepository.findById(userId);
-        if (user.isEmpty()||!user.get().isEnable()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id: "+userId));
-        }else {
-            return ResponseEntity.status(HttpStatus.OK).body(modelMapper.map(user.get(), UserDto.class));
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty() || !user.get().isEnable()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id: " + userId));
+        } else {
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getUserInfo(user.get()));
         }
+    }
+
+
+    private void sendEmail(User user) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(user.getEmail());
+        message.setSubject("Thử chức năng gửi email");
+        message.setText("Cảm ơn bạn đã đăng ký tài khoản. Dưới đây là thông tin của bạn" + user);
+        mailSender.send(message);
     }
 
 }

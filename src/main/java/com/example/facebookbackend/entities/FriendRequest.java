@@ -2,7 +2,6 @@ package com.example.facebookbackend.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -11,7 +10,6 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "friendRequest")
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class FriendRequest {
     @Id
