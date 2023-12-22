@@ -6,6 +6,8 @@ import com.example.facebookbackend.repositories.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.mail.MailSender;
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -18,8 +20,8 @@ public class ResponseUtils {
     private final CommentRepository commentRepository;
     private final LikePostRepository likePostRepository;
     private final LikeCommentRepository likeCommentRepository;
-
     private final ModelMapper modelMapper;
+    private final MailSender mailSender;
 
     @Autowired
     public ResponseUtils(PostVersionRepository postVersionRepository,
@@ -27,13 +29,23 @@ public class ResponseUtils {
                          CommentRepository commentRepository,
                          LikePostRepository likePostRepository,
                          LikeCommentRepository likeCommentRepository,
-                         ModelMapper modelMapper) {
+                         ModelMapper modelMapper,
+                         MailSender mailSender) {
         this.postVersionRepository = postVersionRepository;
         this.commentVersionRepository = commentVersionRepository;
         this.commentRepository = commentRepository;
         this.likePostRepository = likePostRepository;
         this.likeCommentRepository = likeCommentRepository;
         this.modelMapper = modelMapper;
+        this.mailSender = mailSender;
+    }
+
+    public void sendEmail(User receivedUser, String subject, String content) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(receivedUser.getEmail());
+        message.setSubject(subject);
+        message.setText(content);
+        mailSender.send(message);
     }
 
     public List<?> pagingList(List<?> list, int page, int size) {
@@ -44,21 +56,32 @@ public class ResponseUtils {
     }
 
     public FriendshipDto getFriendshipInfo(Friendship friendship) {
-        return modelMapper.map(friendship, FriendshipDto.class);
+        return friendship!=null?modelMapper.map(friendship, FriendshipDto.class):null;
     }
 
     public FriendRequestDto getFriendRequestInfo(FriendRequest friendRequest) {
-        return modelMapper.map(friendRequest, FriendRequestDto.class);
+        return friendRequest!=null?modelMapper.map(friendRequest, FriendRequestDto.class):null;
     }
 
     public UserDto getUserInfo(User user) {
-        return modelMapper.map(user, UserDto.class);
+        return user!=null?modelMapper.map(user, UserDto.class):null;
     }
 
     public ImageDto getImageInfo(Image image) {
         return new ImageDto(image.getPath(), this.getUserInfo(image.getUser()), image.getCreatedTime(), image.getImageType());
     }
 
+    public ReportReqDto getReportRequestInfo(ReportRequest reportRequest){
+        return new ReportReqDto(reportRequest.getReportRequestId(),
+                this.getPostInfo(reportRequest.getPost()),
+                this.getUserInfo(reportRequest.getCreatedUser()),
+                reportRequest.getCreatedTime(),
+                reportRequest.getReason(),
+                this.getUserInfo(reportRequest.getAdmin()),
+                reportRequest.getProcessedTime(),
+                reportRequest.getRequestStatus(),
+                reportRequest.getAction());
+    }
     private CommentVersion getLastCommentVersion(Comment comment) {
         List<CommentVersion> commentVersionList = commentVersionRepository.findByComment(comment);
         CommentVersion lastVersion = new CommentVersion();
@@ -77,7 +100,7 @@ public class ResponseUtils {
         PostDto postDto = new PostDto();
         postDto.setPostId(post.getPostId());
         postDto.setContent(lastVersion.getContent());
-        postDto.setCreatedUser(modelMapper.map(post.getCreatedUser(), UserDto.class));
+        postDto.setCreatedUser(this.getUserInfo(post.getCreatedUser()));
         postDto.setCreatedDate(post.getCreatedTime());
         postDto.setAudience(post.getAudience().getAudienceType());
         postDto.setCountLike(listLikes(post).size());
@@ -85,28 +108,28 @@ public class ResponseUtils {
         return postDto;
     }
 
-//    public CommentDto getParrentComment(Comment comment) {
-//        CommentVersion lastVersion = getLastCommentVersion(comment);
-//        CommentDto commentDto = new CommentDto();
-//        commentDto.setCommentId(comment.getCommentId());
-//        commentDto.setCreatedUser(modelMapper.map(comment.getCreatedUser(), UserDto.class));
-//        commentDto.setContent(lastVersion.getContent());
-//        commentDto.setCreatedTime(lastVersion.getModifiedTime());
-//        commentDto.setCountLikes(listLikes(comment).size());
-//        commentDto.setCountComments(countComments(comment));
-//        if (comment.getParentComment() != null) {
-//            commentDto.setParrentComment(getParrentComment(comment.getParentComment()));
-//        } else {
-//            commentDto.setParrentComment(null);
-//        }
-//        return commentDto;
-//    }
+    public CommentDto getParrentComment(Comment comment) {
+        CommentVersion lastVersion = getLastCommentVersion(comment);
+        CommentDto commentDto = new CommentDto();
+        commentDto.setCommentId(comment.getCommentId());
+        commentDto.setCreatedUser(this.getUserInfo(comment.getCreatedUser()));
+        commentDto.setContent(lastVersion.getContent());
+        commentDto.setCreatedTime(lastVersion.getModifiedTime());
+        commentDto.setCountLikes(listLikes(comment).size());
+        commentDto.setCountComments(countComments(comment));
+        if (comment.getParentComment() != null) {
+            commentDto.setParrentComment(getParrentComment(comment.getParentComment()));
+        } else {
+            commentDto.setParrentComment(null);
+        }
+        return commentDto;
+    }
 
     public CommentDto getChildComment(Comment comment) {
         CommentVersion lastVersion = getLastCommentVersion(comment);
         CommentDto commentDto = new CommentDto();
         commentDto.setCommentId(comment.getCommentId());
-        commentDto.setCreatedUser(modelMapper.map(comment.getCreatedUser(), UserDto.class));
+        commentDto.setCreatedUser(this.getUserInfo(comment.getCreatedUser()));
         commentDto.setContent(lastVersion.getContent());
         commentDto.setCreatedTime(lastVersion.getModifiedTime());
         commentDto.setCountLikes(listLikes(comment).size());
@@ -131,6 +154,7 @@ public class ResponseUtils {
     }
 
     public int countComments(Post post) {
+        likePostRepository.findByPost(post);
         return 0;
     }
 

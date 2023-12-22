@@ -1,9 +1,11 @@
 package com.example.facebookbackend.services.implement;
 
 import com.example.facebookbackend.dtos.request.CommentRequest;
+import com.example.facebookbackend.dtos.request.ReportRequestDto;
 import com.example.facebookbackend.dtos.response.CommentDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.*;
+import com.example.facebookbackend.enums.ERequestStatus;
 import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.ReactServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
@@ -36,6 +38,8 @@ public class ReactServicesImpl implements ReactServices {
     RoleRepository roleRepository;
     @Autowired
     CommentVersionRepository commentVersionRepository;
+    @Autowired
+    ReportRequestRepository reportRequestRepository;
 
     @Autowired
     AccessControlUtils accessControlUtils;
@@ -212,4 +216,28 @@ public class ReactServicesImpl implements ReactServices {
         }
     }
 
+    @Override
+    public ResponseEntity<MessageResponse> reportPost(User currentUser, ReportRequestDto reportRequestDto) {
+        Optional<Post> post = postRepository.findById(reportRequestDto.getId());
+        if (post.isEmpty() || post.get().isDeleted()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + reportRequestDto.getId()));
+        } else {
+            if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
+                if (!reportRequestRepository.findByPostAndCreatedUser(post.get(), currentUser).isEmpty()) {
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn đã gửi báo cáo về bài viết này trước đây"));
+                } else {
+                    ReportRequest request = new ReportRequest();
+                    request.setPost(post.get());
+                    request.setReason(reportRequestDto.getReason());
+                    request.setCreatedUser(currentUser);
+                    request.setCreatedTime(LocalDateTime.now());
+                    request.setRequestStatus(ERequestStatus.PENDING);
+                    reportRequestRepository.save(request);
+                    return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Cảm ơn bạn đã gửi báo cáo bài viết. Chúng tôi sẽ xem xét và xử lý trường hợp này"));
+                }
+            } else {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền xem bài viết"));
+            }
+        }
+    }
 }

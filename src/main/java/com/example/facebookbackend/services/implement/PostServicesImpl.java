@@ -1,13 +1,12 @@
 package com.example.facebookbackend.services.implement;
 
 import com.example.facebookbackend.dtos.request.PostRequest;
+import com.example.facebookbackend.dtos.request.ReportRequestDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.dtos.response.PostDto;
-import com.example.facebookbackend.entities.Audience;
-import com.example.facebookbackend.entities.Post;
-import com.example.facebookbackend.entities.PostVersion;
-import com.example.facebookbackend.entities.User;
+import com.example.facebookbackend.entities.*;
 import com.example.facebookbackend.enums.EAudience;
+import com.example.facebookbackend.enums.ERequestStatus;
 import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.PostServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
@@ -148,7 +147,6 @@ public class PostServicesImpl implements PostServices {
         if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId));
         } else {
-
             if (accessControlUtils.checkDeletePermission(currentUser, post.get().getCreatedUser())) {
                 post.get().setDeleted(true);
                 post.get().setDeletedUser(currentUser);
@@ -160,6 +158,7 @@ public class PostServicesImpl implements PostServices {
             }
         }
     }
+
 
     private Audience getAudience(EAudience eAudience) {
         return audienceRepository.findByAudienceType(eAudience).orElseThrow(() -> new RuntimeException("Không tìm thấy Audience"));

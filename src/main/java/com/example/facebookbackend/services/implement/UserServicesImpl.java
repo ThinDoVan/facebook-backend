@@ -7,6 +7,7 @@ import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.Role;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.ERole;
+import com.example.facebookbackend.enums.Email;
 import com.example.facebookbackend.repositories.FriendRequestRepository;
 import com.example.facebookbackend.repositories.ImageRepository;
 import com.example.facebookbackend.repositories.RoleRepository;
@@ -18,8 +19,6 @@ import com.example.facebookbackend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSender;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -56,9 +55,6 @@ public class UserServicesImpl implements UserServices {
     @Autowired
     ImageRepository imageRepository;
 
-    @Autowired
-    MailSender mailSender;
-
     @Override
     public ResponseEntity<MessageResponse> registerAccount(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
@@ -81,10 +77,13 @@ public class UserServicesImpl implements UserServices {
         roleSet.add(roleRepository.findByRole(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role")));
         user.setRoleSet(roleSet);
 
-        user.setEnable(false);
+        user.setEnable(true);
         user.setCreatedTime(LocalDateTime.now());
-//        sendEmail(user);
         userRepository.save(user);
+
+//        String content = Email.REGISTER_MAIL.getContent().replace("${username}", user.getFullName());
+//        responseUtils.sendEmail(user, Email.REGISTER_MAIL.getSubject(), content);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo tài khoản thành công"));
     }
 
@@ -122,14 +121,4 @@ public class UserServicesImpl implements UserServices {
             return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getUserInfo(user.get()));
         }
     }
-
-
-    private void sendEmail(User user) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(user.getEmail());
-        message.setSubject("Thử chức năng gửi email");
-        message.setText("Cảm ơn bạn đã đăng ký tài khoản. Dưới đây là thông tin của bạn" + user);
-        mailSender.send(message);
-    }
-
 }

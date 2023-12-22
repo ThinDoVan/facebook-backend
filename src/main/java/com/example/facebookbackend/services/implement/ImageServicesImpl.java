@@ -102,16 +102,50 @@ public class ImageServicesImpl implements ImageServices {
     @Override
     public ResponseEntity<?> getUserImageList(int userId, Integer page, Integer size) {
         Optional<User> user = userRepository.findById(userId);
-        if(user.isEmpty()){
+        if (user.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
-        }else {
+        } else {
             List<Image> imageList = imageRepository.findByUser(user.get());
-            List<ImageDto> imageDtoList= new ArrayList<>();
-            for (Image result:imageList) {
+            List<ImageDto> imageDtoList = new ArrayList<>();
+            for (Image result : imageList) {
                 imageDtoList.add(responseUtils.getImageInfo(result));
             }
             imageDtoList = imageDtoList.stream().sorted(Comparator.comparing(ImageDto::getImageType)).collect(Collectors.toList());
             return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(imageDtoList, page, size));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getUserProfilePicture(int userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
+        } else {
+            List<Image> listProfilePicture = imageRepository.findByUser(user.get()).stream()
+                    .filter(image -> image.getImageType()==EImageType.PROFILE_PICTURE)
+                    .toList();
+            Image currentProfilePicture = new Image();
+            for (Image image:listProfilePicture) {
+                currentProfilePicture=image;
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getImageInfo(currentProfilePicture));
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> getUserCoverPhoto(int userId) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
+        } else {
+            List<Image> listProfilePicture = imageRepository.findByUser(user.get()).stream()
+                    .filter(image -> image.getImageType()==EImageType.COVER_PHOTO)
+                    .toList();
+            Image currentProfilePicture = new Image();
+            for (Image image:listProfilePicture) {
+                currentProfilePicture=image;
+            }
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getImageInfo(currentProfilePicture));
         }
     }
 }

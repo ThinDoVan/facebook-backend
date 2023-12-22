@@ -1,6 +1,8 @@
 package com.example.facebookbackend.controllers;
 
 import com.example.facebookbackend.dtos.request.CommentRequest;
+import com.example.facebookbackend.dtos.request.ReportRequestDto;
+import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.ReactServices;
@@ -66,5 +68,13 @@ public class ReactControllers {
                                             @RequestParam(required = false, defaultValue = "5") Integer size){
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return reactServices.getPostComments(currentUser, postId, page, size);
+    }
+
+
+    @PostMapping(path = "/ReportPost")
+    public ResponseEntity<MessageResponse> reportPost(@AuthenticationPrincipal UserDetails userDetails,
+                                                      @RequestBody ReportRequestDto reportRequestDto) {
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return reactServices.reportPost(currentUser, reportRequestDto);
     }
 }

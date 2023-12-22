@@ -1,6 +1,7 @@
 package com.example.facebookbackend.services;
 
 import com.example.facebookbackend.dtos.request.CommentRequest;
+import com.example.facebookbackend.dtos.request.ReportRequestDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.User;
 import org.springframework.http.ResponseEntity;
@@ -13,4 +14,6 @@ public interface ReactServices {
     ResponseEntity<MessageResponse> updateComment(User currentUser, CommentRequest commentRequest);
     ResponseEntity<MessageResponse> deleteComment(User currentUser, Integer commentId);
     ResponseEntity<?> getPostComments(User currentUser, Integer postId, Integer page, Integer size);
+
+    ResponseEntity<MessageResponse> reportPost(User currentUser, ReportRequestDto reportRequestDto);
 }

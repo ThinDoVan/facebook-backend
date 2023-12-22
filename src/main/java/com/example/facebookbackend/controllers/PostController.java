@@ -1,6 +1,7 @@
 package com.example.facebookbackend.controllers;
 
 import com.example.facebookbackend.dtos.request.PostRequest;
+import com.example.facebookbackend.dtos.request.ReportRequestDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
@@ -55,4 +56,5 @@ public class PostController {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return postServices.deletePost(currentUser, postId);
     }
+
 }

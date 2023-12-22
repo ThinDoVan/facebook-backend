@@ -20,5 +20,6 @@ public class Image {
     private User user;
     private String path;
     private LocalDateTime createdTime;
+    @Enumerated(EnumType.STRING)
     private EImageType imageType;
 }

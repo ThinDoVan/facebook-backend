@@ -47,7 +47,14 @@ public class ImageControllers {
     public ResponseEntity<?> getImageInfo(@RequestParam int imageId) {
         return imageServices.getImageInfo(imageId);
     }
-
+    @GetMapping(path = "/GetCoverPhotoInfo")
+    public ResponseEntity<?> getCoverPhotoInfo(@RequestParam int userId) {
+        return imageServices.getUserCoverPhoto(userId);
+    }
+    @GetMapping(path = "/GetProfilePictureInfo")
+    public ResponseEntity<?> getProfilePictureInfo(@RequestParam int userId) {
+        return imageServices.getUserProfilePicture(userId);
+    }
     @GetMapping(path = "/GetUserImageList")
     public ResponseEntity<?> getUserImageList(@RequestParam int userId,
                                               @RequestParam(required = false, defaultValue = "0") Integer page,
