@@ -6,9 +6,9 @@ import com.example.facebookbackend.entities.Post;
 import com.example.facebookbackend.entities.ReportRequest;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.ERequestStatus;
-import com.example.facebookbackend.enums.Email;
 import com.example.facebookbackend.repositories.PostRepository;
 import com.example.facebookbackend.repositories.ReportRequestRepository;
+import com.example.facebookbackend.repositories.UserRepository;
 import com.example.facebookbackend.services.AdminServices;
 import com.example.facebookbackend.services.PostServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
@@ -34,6 +34,8 @@ public class AdminServicesImpl implements AdminServices {
     ReportRequestRepository reportRequestRepository;
     @Autowired
     PostRepository postRepository;
+    @Autowired
+    UserRepository userRepository;
 
     @Autowired
     PostServices postServices;
@@ -78,22 +80,27 @@ public class AdminServicesImpl implements AdminServices {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy Report Request có Id " + reportId));
             } else {
                 if (request.get().getRequestStatus() == ERequestStatus.PENDING) {
+                    Post post = request.get().getPost();
+                    User user = post.getCreatedUser();
+                    request.get().setAdmin(admin);
+                    request.get().setProcessedTime(LocalDateTime.now());
+
                     if (isApproved) {
                         request.get().setRequestStatus(ERequestStatus.APPROVED);
                         request.get().setAction("Xóa bài viết");
+                        user.setLockUntil(LocalDateTime.now().plusHours(24));
+                        userRepository.save(user);
+                        reportRequestRepository.save(request.get());
+//                        Gửi mail thông báo
+//                        String content = Email.REMOVE_POST.getContent().replace("${username}", request.get().getPost().getCreatedUser().getFullName());
+//                        responseUtils.sendEmail(request.get().getPost().getCreatedUser(), Email.REMOVE_POST.getSubject(), content);
+                        return postServices.deletePost(admin, request.get().getPost().getPostId());
                     } else {
                         request.get().setRequestStatus(ERequestStatus.REJECTED);
                         request.get().setAction(null);
-                    }
-                    request.get().setAdmin(admin);
-                    request.get().setProcessedTime(LocalDateTime.now());
-                    reportRequestRepository.save(request.get());
-                    if (isApproved) {
-                        String content = Email.REMOVE_POST.getContent().replace("${username}", request.get().getPost().getCreatedUser().getFullName());
-                        responseUtils.sendEmail(request.get().getPost().getCreatedUser(), Email.REMOVE_POST.getSubject(), content);
-                        return postServices.deletePost(admin, request.get().getPost().getPostId());
-                    } else {
+                        reportRequestRepository.save(request.get());
                         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Bạn đã từ chối Report Request này"));
+
                     }
                 } else {
                     return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Report Request này đã được xử lý"));

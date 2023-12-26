@@ -1,7 +1,9 @@
 package com.example.facebookbackend.controllers;
 
+import com.example.facebookbackend.dtos.request.ChangePasswordRequest;
 import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
+import com.example.facebookbackend.dtos.request.ResetPasswordRequest;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.services.UserServices;
 import jakarta.validation.Valid;
@@ -26,4 +28,13 @@ public class AuthControllers {
         return userServices.loginAccount(loginRequest);
     }
 
+    @PostMapping(path = "/ForgetPassword")
+    public ResponseEntity<MessageResponse> getResetPasswordToken(@RequestParam String userEmail){
+        return userServices.forgotPassword(userEmail);
+    }
+
+    @PostMapping(path = "/ResetPassword")
+    public ResponseEntity<MessageResponse> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest){
+        return userServices.resetPassword(resetPasswordRequest);
+    }
 }

@@ -31,6 +31,9 @@ public class User {
 
     private boolean enable;
 
+    //Thời gian vô hiệu hóa
+    private LocalDateTime lockUntil;
+
     private LocalDateTime createdTime;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -38,5 +41,4 @@ public class User {
             joinColumns = {@JoinColumn(name = "userId")},
             inverseJoinColumns = {@JoinColumn(name = "roleId")})
     private Set<Role> roleSet;
-
 }

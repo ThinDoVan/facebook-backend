@@ -20,8 +20,8 @@ public class ProjectConfig {
     JavaMailSender getJavaMailSender() {
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
         javaMailSender.setHost("smtp.gmail.com");
-        javaMailSender.setUsername("tst21032000@gmail.com");
-        javaMailSender.setPassword("melw eexh tfkt ulcu");
+        javaMailSender.setUsername("stuartdmc9@gmail.com");
+        javaMailSender.setPassword("ychu hupm ntdm oqyb");
         Properties properties= new Properties();
         properties.put("mail.smtp.auth", "true");
         properties.put("mail.smtp.port","587");

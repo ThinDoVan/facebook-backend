@@ -1,6 +1,9 @@
 package com.example.facebookbackend.controllers;
 
+import com.example.facebookbackend.dtos.request.ChangePasswordRequest;
+import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.dtos.response.UserDto;
+import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.UserServices;
 import org.modelmapper.ModelMapper;
@@ -27,5 +30,12 @@ public class UserControllers {
     @GetMapping(path = "/CurrentUser")
     public ResponseEntity<?> getUser(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok().body(modelMapper.map(((UserDetailsImpl) userDetails).getUser(), UserDto.class));
+    }
+
+    @PutMapping(path = "/ChangePassword")
+    public ResponseEntity<MessageResponse> changePassword(@AuthenticationPrincipal UserDetails userDetails,
+                                                          @RequestBody ChangePasswordRequest changePasswordRequest){
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return userServices.changePassword(currentUser, changePasswordRequest);
     }
 }

@@ -75,7 +75,7 @@ public class PostServicesImpl implements PostServices {
     public ResponseEntity<?> getPost(User currentUser, int postId) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId+" hoặc bài viết đã bị xóa"));
         } else {
             if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
                 return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getPostInfo(post.get()));
@@ -117,7 +117,7 @@ public class PostServicesImpl implements PostServices {
             postRequest) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId+" hoặc bài viết đã bị xóa"));
         } else {
             if (!accessControlUtils.checkEditPermission(currentUser, post.get().getCreatedUser())) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền sửa bài viết này"));
@@ -145,7 +145,7 @@ public class PostServicesImpl implements PostServices {
     public ResponseEntity<MessageResponse> deletePost(User currentUser, Integer postId) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId+" hoặc bài viết đã bị xóa"));
         } else {
             if (accessControlUtils.checkDeletePermission(currentUser, post.get().getCreatedUser())) {
                 post.get().setDeleted(true);

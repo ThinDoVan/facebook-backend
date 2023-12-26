@@ -50,7 +50,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<MessageResponse> likePost(User currentUser, Integer postId) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId+" hoặc bài viết đã bị xóa"));
         } else {
             if (likePostRepository.findByPostAndUser(post.get(), currentUser).isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bài viết này trước đây"));
@@ -73,7 +73,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<MessageResponse> commentPost(User currentUser, CommentRequest commentRequest) {
         Optional<Post> post = postRepository.findById(commentRequest.getRepliedItemId());
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + commentRequest.getRepliedItemId()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + commentRequest.getRepliedItemId()+" hoặc bài viết đã bị xóa"));
         } else {
             if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
@@ -101,7 +101,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<MessageResponse> likeComment(User currentUser, Integer commentId) {
         Optional<Comment> comment = commentRepository.findById(commentId);
         if (comment.isEmpty() || comment.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentId));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentId+" hoặc bình luận đã bị xóa"));
         } else {
             if (likeCommentRepository.findByCommentAndUser(comment.get(), currentUser).isPresent()) {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bình luận này trước đây"));
@@ -124,7 +124,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<MessageResponse> replyComment(User currentUser, CommentRequest commentRequest) {
         Optional<Comment> parentComment = commentRepository.findById(commentRequest.getRepliedItemId());
         if (parentComment.isEmpty() || parentComment.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId()+" hoặc bình luận đã bị xóa"));
         } else {
             if (accessControlUtils.checkReadPermission(currentUser, parentComment.get().getPost())) {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
@@ -153,7 +153,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<MessageResponse> updateComment(User currentUser, CommentRequest commentRequest) {
         Optional<Comment> comment = commentRepository.findById(commentRequest.getRepliedItemId());
         if (comment.isEmpty() || comment.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId()+" hoặc bình luận đã bị xóa"));
         } else {
             if (accessControlUtils.checkEditPermission(currentUser, comment.get().getCreatedUser())) {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
@@ -176,7 +176,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<MessageResponse> deleteComment(User currentUser, Integer commentId) {
         Optional<Comment> comment = commentRepository.findById(commentId);
         if (comment.isEmpty() || comment.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentId));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentId+" hoặc bình luận đã bị xóa"));
         } else {
             if (accessControlUtils.checkDeletePermission(currentUser, comment.get().getCreatedUser())) {
                 comment.get().setDeleted(true);
@@ -194,7 +194,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<?> getPostComments(User currentUser, Integer postId, Integer page, Integer size) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + postId+" hoặc bài viết đã bị xóa"));
         } else {
             if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
                 List<CommentDto> commentDtoList = new ArrayList<>();
@@ -220,7 +220,7 @@ public class ReactServicesImpl implements ReactServices {
     public ResponseEntity<MessageResponse> reportPost(User currentUser, ReportRequestDto reportRequestDto) {
         Optional<Post> post = postRepository.findById(reportRequestDto.getId());
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + reportRequestDto.getId()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + reportRequestDto.getId()+" hoặc bài viết đã bị xóa"));
         } else {
             if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
                 if (!reportRequestRepository.findByPostAndCreatedUser(post.get(), currentUser).isEmpty()) {

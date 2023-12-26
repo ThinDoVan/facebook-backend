@@ -3,11 +3,15 @@ package com.example.facebookbackend.utils;
 import com.example.facebookbackend.dtos.response.*;
 import com.example.facebookbackend.entities.*;
 import com.example.facebookbackend.repositories.*;
+import jakarta.mail.internet.MimeMessage;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -22,6 +26,7 @@ public class ResponseUtils {
     private final LikeCommentRepository likeCommentRepository;
     private final ModelMapper modelMapper;
     private final MailSender mailSender;
+    private final JavaMailSender javaMailSender;
 
     @Autowired
     public ResponseUtils(PostVersionRepository postVersionRepository,
@@ -30,7 +35,8 @@ public class ResponseUtils {
                          LikePostRepository likePostRepository,
                          LikeCommentRepository likeCommentRepository,
                          ModelMapper modelMapper,
-                         MailSender mailSender) {
+                         MailSender mailSender,
+                         JavaMailSender javaMailSender) {
         this.postVersionRepository = postVersionRepository;
         this.commentVersionRepository = commentVersionRepository;
         this.commentRepository = commentRepository;
@@ -38,6 +44,7 @@ public class ResponseUtils {
         this.likeCommentRepository = likeCommentRepository;
         this.modelMapper = modelMapper;
         this.mailSender = mailSender;
+        this.javaMailSender = javaMailSender;
     }
 
     public void sendEmail(User receivedUser, String subject, String content) {
