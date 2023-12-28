@@ -80,7 +80,11 @@ public class FriendServicesImpl implements FriendServices {
         for (FriendRequest result : friendRequestRepository.findFriendRequestsBySender(currentUser)) {
             friendRequestDtoList.add(responseUtils.getFriendRequestInfo(result));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+        }
     }
 
     @Override
@@ -90,7 +94,11 @@ public class FriendServicesImpl implements FriendServices {
         for (FriendRequest result : friendRequestRepository.findFriendRequestsByReceiver(currentUser)) {
             friendRequestDtoList.add(responseUtils.getFriendRequestInfo(result));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+        }
     }
 
 
@@ -124,7 +132,6 @@ public class FriendServicesImpl implements FriendServices {
 
     @Override
     public ResponseEntity<?> getUserFriendList(User currentUser, Integer page, Integer size) {
-
         List<FriendshipDto> friendRequestDtoList = new ArrayList<>();
         for (Friendship result : friendshipRepository.findByUser1(currentUser)) {
             friendRequestDtoList.add(responseUtils.getFriendshipInfo(result));
@@ -132,6 +139,10 @@ public class FriendServicesImpl implements FriendServices {
         for (Friendship result : friendshipRepository.findByUser2(currentUser)) {
             friendRequestDtoList.add(responseUtils.getFriendshipInfo(result));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+        }
     }
 }

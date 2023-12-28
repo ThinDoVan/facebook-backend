@@ -92,7 +92,8 @@ public class ImageServicesImpl implements ImageServices {
             image.setContentType(multipartFile.getContentType());
             image.setSize(multipartFile.getSize());
             switch (imageType.toLowerCase()) {
-                case "avatar", "profile picture", "profilepicture", "profile_picture" -> image.setImageType(EImageType.PROFILE_PICTURE);
+                case "avatar", "profile picture", "profilepicture", "profile_picture" ->
+                        image.setImageType(EImageType.PROFILE_PICTURE);
                 case "cover photo", "coverphoto", "cover_photo" -> image.setImageType(EImageType.COVER_PHOTO);
                 default -> image.setImageType(EImageType.POST_PHOTO);
             }
@@ -125,7 +126,11 @@ public class ImageServicesImpl implements ImageServices {
                 imageDtoList.add(responseUtils.getImageInfo(result));
             }
             imageDtoList = imageDtoList.stream().sorted(Comparator.comparing(ImageDto::getImageType)).collect(Collectors.toList());
-            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(imageDtoList, page, size));
+            try {
+                return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(imageDtoList, page, size));
+            } catch (IllegalArgumentException e) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+            }
         }
     }
 
@@ -136,11 +141,11 @@ public class ImageServicesImpl implements ImageServices {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
         } else {
             List<Image> listProfilePicture = imageRepository.findByUser(user.get()).stream()
-                    .filter(image -> image.getImageType()==EImageType.PROFILE_PICTURE)
+                    .filter(image -> image.getImageType() == EImageType.PROFILE_PICTURE)
                     .toList();
             Image currentProfilePicture = new Image();
-            for (Image image:listProfilePicture) {
-                currentProfilePicture=image;
+            for (Image image : listProfilePicture) {
+                currentProfilePicture = image;
             }
             return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getImageInfo(currentProfilePicture));
         }
@@ -153,11 +158,11 @@ public class ImageServicesImpl implements ImageServices {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
         } else {
             List<Image> listProfilePicture = imageRepository.findByUser(user.get()).stream()
-                    .filter(image -> image.getImageType()==EImageType.COVER_PHOTO)
+                    .filter(image -> image.getImageType() == EImageType.COVER_PHOTO)
                     .toList();
             Image currentProfilePicture = new Image();
-            for (Image image:listProfilePicture) {
-                currentProfilePicture=image;
+            for (Image image : listProfilePicture) {
+                currentProfilePicture = image;
             }
             return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getImageInfo(currentProfilePicture));
         }

@@ -5,6 +5,8 @@ import com.example.facebookbackend.entities.*;
 import com.example.facebookbackend.repositories.*;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
@@ -49,11 +51,12 @@ public class ResponseUtils {
         mailSender.send(message);
     }
 
-    public List<?> pagingList(List<?> list, int page, int size) {
+    public Page<?> pagingList(List<?> list, int page, int size) throws IllegalArgumentException{
         PageRequest pageRequest = PageRequest.of(page, size);
         int start = (int) pageRequest.getOffset();
         int end = Math.min((start + pageRequest.getPageSize()), list.size());
-        return list.subList(start, end);
+        List<?> pageData = list.subList(start, end);
+        return new PageImpl<>(pageData, pageRequest, list.size());
     }
 
     public FriendshipDto getFriendshipInfo(Friendship friendship) {

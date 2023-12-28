@@ -83,12 +83,6 @@ public class UserServicesImpl implements UserServices {
         user.setCreatedTime(LocalDateTime.now());
         userRepository.save(user);
         createVerificationCode(user, Email.REGISTER);
-//        String content = Email.REGISTER.getContent()
-//                .replace("${username}", user.getFullName())
-//                .replace("${time}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-////        responseUtils.sendEmail(user, Email.REGISTER.getSubject(), content);
-//        System.out.println("\n\nĐĂNG KÝ TÀI KHOẢN:\n"+content);
-
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo tài khoản thành công"));
     }
 
@@ -210,8 +204,7 @@ public class UserServicesImpl implements UserServices {
                 .replace("${code}", verificationCode.getVerificationCode())
                 .replace("${username}", user.getFullName())
                 .replace("${time}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-            responseUtils.sendEmail(user, emailType.getSubject(), content);
-        System.out.println("\n\n" + emailType.getSubject() + "\n" + content);
+//            responseUtils.sendEmail(user, emailType.getSubject(), content);
         verificationCode.setExpiredTime(LocalDateTime.now().plusMinutes(5));
         verificationCodeRepository.save(verificationCode);
     }

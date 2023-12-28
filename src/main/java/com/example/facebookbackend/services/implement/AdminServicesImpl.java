@@ -58,7 +58,11 @@ public class AdminServicesImpl implements AdminServices {
         for (ReportRequest reportRequest : reportRequestList) {
             reportReqDtoList.add(responseUtils.getReportRequestInfo(reportRequest));
         }
-        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(reportReqDtoList, page, size));
+        try {
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(reportReqDtoList, page, size));
+        }catch (IllegalArgumentException e){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+        }
     }
 
     @Override
@@ -94,7 +98,6 @@ public class AdminServicesImpl implements AdminServices {
                         String content = Email.REMOVE_POST.getContent()
                                 .replace("${username}", request.get().getPost().getCreatedUser().getFullName());
 //                        responseUtils.sendEmail(request.get().getPost().getCreatedUser(), Email.REMOVE_POST.getSubject(), content);
-                        System.out.println("\n\nĐỔI MẬT KHẨU:\n"+content);
                         userRepository.save(user);
                         reportRequestRepository.save(request.get());
                         return postServices.deletePost(admin, request.get().getPost().getPostId());
