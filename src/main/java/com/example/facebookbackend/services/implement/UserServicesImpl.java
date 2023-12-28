@@ -1,14 +1,13 @@
 package com.example.facebookbackend.services.implement;
 
-import com.example.facebookbackend.dtos.request.ChangePasswordRequest;
 import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
 import com.example.facebookbackend.dtos.request.ResetPasswordRequest;
 import com.example.facebookbackend.dtos.response.JwtResponse;
 import com.example.facebookbackend.dtos.response.MessageResponse;
-import com.example.facebookbackend.entities.VerificationCode;
 import com.example.facebookbackend.entities.Role;
 import com.example.facebookbackend.entities.User;
+import com.example.facebookbackend.entities.VerificationCode;
 import com.example.facebookbackend.enums.ERole;
 import com.example.facebookbackend.enums.Email;
 import com.example.facebookbackend.repositories.*;
@@ -31,7 +30,10 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Random;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,17 +79,34 @@ public class UserServicesImpl implements UserServices {
         }
         roleSet.add(roleRepository.findByRole(ERole.ROLE_USER).orElseThrow(() -> new RuntimeException("Lỗi: Không tìm thấy Role")));
         user.setRoleSet(roleSet);
-
-        user.setEnable(true);
+        user.setEnable(false);
         user.setCreatedTime(LocalDateTime.now());
         userRepository.save(user);
-
+        createVerificationCode(user, Email.REGISTER);
 //        String content = Email.REGISTER.getContent()
 //                .replace("${username}", user.getFullName())
 //                .replace("${time}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-//        responseUtils.sendEmail(user, Email.REGISTER.getSubject(), content);
+////        responseUtils.sendEmail(user, Email.REGISTER.getSubject(), content);
+//        System.out.println("\n\nĐĂNG KÝ TÀI KHOẢN:\n"+content);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo tài khoản thành công"));
+    }
+
+    @Override
+    public ResponseEntity<MessageResponse> activeAccount(String verificationCodeStr) {
+        Optional<VerificationCode> verificationCode = verificationCodeRepository.findByVerificationCode(verificationCodeStr);
+        if (verificationCode.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy Verification Code"));
+        } else {
+            if (verificationCode.get().getExpiredTime().isBefore(LocalDateTime.now())) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Verification Code quá hạn"));
+            } else {
+                User user = verificationCode.get().getUser();
+                user.setEnable(true);
+                userRepository.save(user);
+                return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Tài khoản của bạn đã được active"));
+            }
+        }
     }
 
     @Override
@@ -100,25 +119,12 @@ public class UserServicesImpl implements UserServices {
             Set<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
             return ResponseEntity.status(HttpStatus.OK).body(new JwtResponse(jwt, userDetails.getUsername(), roles));
         } catch (AuthenticationException e) {
+
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Đăng nhập thất bại. " + e.getMessage()));
         }
     }
 
-    @Override
-    public ResponseEntity<MessageResponse> changePassword(User currentUser, ChangePasswordRequest changePasswordRequest) {
-        if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), currentUser.getPassword())) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Đổi mật khẩu thất bại"));
-        } else {
-            currentUser.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
-            userRepository.save(currentUser);
-//            String content = Email.CHANGE_PASSWORD.getContent()
-//                    .replace("${username}", currentUser.getFullName())
-//                    .replace("${time}",LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-//            responseUtils.sendEmail(currentUser, Email.CHANGE_PASSWORD.getSubject(), content);
 
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Đổi mật khẩu thành công"));
-        }
-    }
 
 
     @Override
@@ -127,7 +133,6 @@ public class UserServicesImpl implements UserServices {
         if (user.isEmpty() || !user.get().isEnable()) {
             return ResponseEntity.badRequest().body(new MessageResponse("Không tìm thấy người dùng có email: " + email));
         } else {
-
             return ResponseEntity.ok().body(responseUtils.getUserInfo(user.get()));
         }
     }
@@ -143,23 +148,22 @@ public class UserServicesImpl implements UserServices {
     }
 
     @Override
+    public ResponseEntity<MessageResponse> changePassword(User currentUser, String currentPassword) {
+        if (!passwordEncoder.matches(currentPassword, currentUser.getPassword())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Đổi mật khẩu thất bại"));
+        } else {
+            createVerificationCode(currentUser, Email.CHANGE_PASSWORD);
+            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Hệ thống đã gửi mã xác nhận đến email của bạn. Vui lòng kiểm tra"));
+        }
+    }
+
+    @Override
     public ResponseEntity<MessageResponse> forgotPassword(String email) {
         Optional<User> user = userRepository.findByEmail(email);
-        if (user.isEmpty()|| !user.get().isEnable()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email "+email));
-        }else {
-            Optional<VerificationCode> currentVerificationCode = verificationCodeRepository.findByUser(user.get());
-            if (currentVerificationCode.isPresent()){
-                verificationCodeRepository.delete(currentVerificationCode.get());
-            }
-            VerificationCode verificationCode = new VerificationCode(generateOTP(8), user.get());
-            String content = Email.FORGOT_PASSWORD.getContent()
-                    .replace("${code}", verificationCode.getVerificationCode())
-                    .replace("${name}", user.get().getFullName())
-                    .replace("${time}",LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-            responseUtils.sendEmail(user.get(), Email.FORGOT_PASSWORD.getSubject(), content);
-            verificationCode.setExpiredTime(LocalDateTime.now().plusMinutes(5));
-            verificationCodeRepository.save(verificationCode);
+        if (user.isEmpty() || !user.get().isEnable()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email " + email));
+        } else {
+            createVerificationCode(user.get(), Email.CHANGE_PASSWORD);
             return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Hệ thống đã gửi mã xác nhận đến email của bạn. Vui lòng kiểm tra"));
         }
     }
@@ -167,12 +171,12 @@ public class UserServicesImpl implements UserServices {
     @Override
     public ResponseEntity<MessageResponse> resetPassword(ResetPasswordRequest resetPasswordRequest) {
         Optional<VerificationCode> verificationCode = verificationCodeRepository.findByVerificationCode(resetPasswordRequest.getVerificationCode());
-        if(verificationCode.isEmpty()){
+        if (verificationCode.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy Verification Code"));
-        }else {
-            if(verificationCode.get().getExpiredTime().isBefore(LocalDateTime.now())){
+        } else {
+            if (verificationCode.get().getExpiredTime().isBefore(LocalDateTime.now())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new MessageResponse("Verification Code quá hạn"));
-            }else {
+            } else {
                 User user = verificationCode.get().getUser();
                 user.setPassword(passwordEncoder.encode(resetPasswordRequest.getPassword()));
                 userRepository.save(user);
@@ -181,16 +185,34 @@ public class UserServicesImpl implements UserServices {
             }
         }
     }
-    public String generateOTP(int length) {
+
+    @Override
+    public ResponseEntity<MessageResponse> disableAccount(User currentUser) {
+        return null;
+    }
+
+    private String generateOTP() {
         String allowedChars = "0123456789";
         Random random = new Random();
         StringBuilder otp = new StringBuilder();
-
-        for (int i = 0; i < length; i++) {
+        for (int i = 0; i < 8; i++) {
             int index = random.nextInt(allowedChars.length());
             otp.append(allowedChars.charAt(index));
         }
-
         return otp.toString();
+    }
+
+    private void createVerificationCode(User user, Email emailType) {
+        Optional<VerificationCode> currentVerificationCode = verificationCodeRepository.findByUser(user);
+        currentVerificationCode.ifPresent(verificationCode -> verificationCodeRepository.delete(verificationCode));
+        VerificationCode verificationCode = new VerificationCode(generateOTP(), user);
+        String content = emailType.getContent()
+                .replace("${code}", verificationCode.getVerificationCode())
+                .replace("${username}", user.getFullName())
+                .replace("${time}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+            responseUtils.sendEmail(user, emailType.getSubject(), content);
+        System.out.println("\n\n" + emailType.getSubject() + "\n" + content);
+        verificationCode.setExpiredTime(LocalDateTime.now().plusMinutes(5));
+        verificationCodeRepository.save(verificationCode);
     }
 }
