@@ -8,7 +8,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 public interface ImageServices {
-    ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile multipartFile, String imageType) throws IOException;
+    ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile multipartFile, String imageType);
+//    ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile multipartFile);
 
     //    ResponseEntity<?> getImage(int imageId) throws IOException;
     ResponseEntity<?> getImageInfo(int imageId);

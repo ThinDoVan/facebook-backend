@@ -10,8 +10,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ImageDto {
-    private String path;
-    private UserDto userDto;
+    private UserDto createdUser;
     private LocalDateTime createdTime;
+    private String fileName;
+    private String contentType;
+    private String url;
+    private long size;
     private EImageType imageType;
 }

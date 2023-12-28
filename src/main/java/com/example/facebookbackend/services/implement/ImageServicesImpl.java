@@ -1,5 +1,7 @@
 package com.example.facebookbackend.services.implement;
 
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.example.facebookbackend.dtos.response.ImageDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.Image;
@@ -13,10 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.*;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,64 +31,77 @@ public class ImageServicesImpl implements ImageServices {
 
     @Autowired
     ResponseUtils responseUtils;
-
-    @Override
-    public ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile file, String imageType) throws IOException {
-        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Chỉ cho phép tải hình ảnh lên"));
-        } else {
-            Image image = new Image();
-            image.setUser(currentUser);
-            image.setCreatedTime(LocalDateTime.now());
-            String uploadDir;
-            switch (imageType.toLowerCase()) {
-                case "avatar", "profile picture", "profilepicture", "profile_picture" -> {
-                    image.setImageType(EImageType.PROFILE_PICTURE);
-                    uploadDir = "img/ProfilePicture/" + currentUser.getUserId();
-                }
-                case "cover photo", "coverphoto", "cover_photo" -> {
-                    image.setImageType(EImageType.COVER_PHOTO);
-                    uploadDir = "img/CoverPhoto/" + currentUser.getUserId();
-                }
-                default -> {
-                    image.setImageType(EImageType.POST_PHOTO);
-                    uploadDir = "img/PostPhoto/" + currentUser.getUserId();
-                }
-            }
-            String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-            File newFile = new File(uploadDir, fileName);
-            if (!newFile.exists()) {
-                newFile.getParentFile().mkdirs();
-                newFile.createNewFile();
-
-            }
-            InputStream inputStream = file.getInputStream();
-            OutputStream outputStream = new FileOutputStream(newFile);
-            byte[] buffer = new byte[2048];
-            int length;
-            while ((length = inputStream.read(buffer)) != -1) {
-                outputStream.write(buffer, 0, length);
-            }
-            inputStream.close();
-            outputStream.close();
-            image.setPath(newFile.getPath());
-            imageRepository.save(image);
-            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Tải ảnh thành công"));
-        }
-    }
+    @Autowired
+    Cloudinary cloudinary;
 
 //    @Override
-//    public ResponseEntity<?> getImage(int imageId) throws IOException {
-//        Optional<Image> image = imageRepository.findById(imageId);
-//        if (image.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id: " + imageId));
+//    public ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile file, String imageType) throws IOException {
+//        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Chỉ cho phép tải hình ảnh lên"));
 //        } else {
-//            File file = new File(image.get().getPath());
-//            byte[] data = Files.readAllBytes(file.toPath());
-//            return ResponseEntity.status(HttpStatus.OK).body(data);
+//            Image image = new Image();
+//            image.setUser(currentUser);
+//            image.setCreatedTime(LocalDateTime.now());
+//            String uploadDir;
+//            switch (imageType.toLowerCase()) {
+//                case "avatar", "profile picture", "profilepicture", "profile_picture" -> {
+//                    image.setImageType(EImageType.PROFILE_PICTURE);
+//                    uploadDir = "img/ProfilePicture/" + currentUser.getUserId();
+//                }
+//                case "cover photo", "coverphoto", "cover_photo" -> {
+//                    image.setImageType(EImageType.COVER_PHOTO);
+//                    uploadDir = "img/CoverPhoto/" + currentUser.getUserId();
+//                }
+//                default -> {
+//                    image.setImageType(EImageType.POST_PHOTO);
+//                    uploadDir = "img/PostPhoto/" + currentUser.getUserId();
+//                }
+//            }
+//            String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
+//            File newFile = new File(uploadDir, fileName);
+//            if (!newFile.exists()) {
+//                newFile.getParentFile().mkdirs();
+//                newFile.createNewFile();
+//
+//            }
+//            InputStream inputStream = file.getInputStream();
+//            OutputStream outputStream = new FileOutputStream(newFile);
+//            byte[] buffer = new byte[2048];
+//            int length;
+//            while ((length = inputStream.read(buffer)) != -1) {
+//                outputStream.write(buffer, 0, length);
+//            }
+//            inputStream.close();
+//            outputStream.close();
+//            image.setUrl(newFile.getPath());
+//            imageRepository.save(image);
+//            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Tải ảnh thành công"));
 //        }
 //    }
 
+    @Override
+    public ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile multipartFile, String imageType) {
+        try {
+            Map uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(), ObjectUtils.emptyMap());
+            System.out.println(uploadResult);
+            Image image = new Image();
+            image.setUser(currentUser);
+            image.setCreatedTime(LocalDateTime.now());
+            image.setUrl(uploadResult.get("url").toString());
+            image.setFileName(multipartFile.getOriginalFilename());
+            image.setContentType(multipartFile.getContentType());
+            image.setSize(multipartFile.getSize());
+            switch (imageType.toLowerCase()) {
+                case "avatar", "profile picture", "profilepicture", "profile_picture" -> image.setImageType(EImageType.PROFILE_PICTURE);
+                case "cover photo", "coverphoto", "cover_photo" -> image.setImageType(EImageType.COVER_PHOTO);
+                default -> image.setImageType(EImageType.POST_PHOTO);
+            }
+            imageRepository.save(image);
+            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Tải ảnh thành công"));
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Tải ảnh thất bại"));
+        }
+    }
 
     @Override
     public ResponseEntity<?> getImageInfo(int imageId) {

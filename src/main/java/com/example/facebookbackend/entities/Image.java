@@ -18,8 +18,11 @@ public class Image {
     @ManyToOne
     @JoinColumn(name = "userId")
     private User user;
-    private String path;
     private LocalDateTime createdTime;
+    private String fileName;
+    private String contentType;
+    private String url;
+    private long size;
     @Enumerated(EnumType.STRING)
     private EImageType imageType;
 }
