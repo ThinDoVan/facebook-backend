@@ -6,6 +6,7 @@ import com.example.facebookbackend.entities.Post;
 import com.example.facebookbackend.entities.ReportRequest;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.ERequestStatus;
+import com.example.facebookbackend.enums.Email;
 import com.example.facebookbackend.repositories.PostRepository;
 import com.example.facebookbackend.repositories.ReportRequestRepository;
 import com.example.facebookbackend.repositories.UserRepository;
@@ -89,18 +90,19 @@ public class AdminServicesImpl implements AdminServices {
                         request.get().setRequestStatus(ERequestStatus.APPROVED);
                         request.get().setAction("Xóa bài viết");
                         user.setLockUntil(LocalDateTime.now().plusHours(24));
+//                        Gửi mail thông báo
+                        String content = Email.REMOVE_POST.getContent()
+                                .replace("${username}", request.get().getPost().getCreatedUser().getFullName());
+//                        responseUtils.sendEmail(request.get().getPost().getCreatedUser(), Email.REMOVE_POST.getSubject(), content);
+                        System.out.println("\n\nĐỔI MẬT KHẨU:\n"+content);
                         userRepository.save(user);
                         reportRequestRepository.save(request.get());
-//                        Gửi mail thông báo
-//                        String content = Email.REMOVE_POST.getContent().replace("${username}", request.get().getPost().getCreatedUser().getFullName());
-//                        responseUtils.sendEmail(request.get().getPost().getCreatedUser(), Email.REMOVE_POST.getSubject(), content);
                         return postServices.deletePost(admin, request.get().getPost().getPostId());
                     } else {
                         request.get().setRequestStatus(ERequestStatus.REJECTED);
                         request.get().setAction(null);
                         reportRequestRepository.save(request.get());
                         return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Bạn đã từ chối Report Request này"));
-
                     }
                 } else {
                     return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Report Request này đã được xử lý"));

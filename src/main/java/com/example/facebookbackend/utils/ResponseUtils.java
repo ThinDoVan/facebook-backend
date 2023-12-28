@@ -3,15 +3,11 @@ package com.example.facebookbackend.utils;
 import com.example.facebookbackend.dtos.response.*;
 import com.example.facebookbackend.entities.*;
 import com.example.facebookbackend.repositories.*;
-import jakarta.mail.internet.MimeMessage;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -26,7 +22,6 @@ public class ResponseUtils {
     private final LikeCommentRepository likeCommentRepository;
     private final ModelMapper modelMapper;
     private final MailSender mailSender;
-    private final JavaMailSender javaMailSender;
 
     @Autowired
     public ResponseUtils(PostVersionRepository postVersionRepository,
@@ -35,8 +30,8 @@ public class ResponseUtils {
                          LikePostRepository likePostRepository,
                          LikeCommentRepository likeCommentRepository,
                          ModelMapper modelMapper,
-                         MailSender mailSender,
-                         JavaMailSender javaMailSender) {
+                         MailSender mailSender
+    ) {
         this.postVersionRepository = postVersionRepository;
         this.commentVersionRepository = commentVersionRepository;
         this.commentRepository = commentRepository;
@@ -44,7 +39,6 @@ public class ResponseUtils {
         this.likeCommentRepository = likeCommentRepository;
         this.modelMapper = modelMapper;
         this.mailSender = mailSender;
-        this.javaMailSender = javaMailSender;
     }
 
     public void sendEmail(User receivedUser, String subject, String content) {
@@ -75,7 +69,13 @@ public class ResponseUtils {
     }
 
     public ImageDto getImageInfo(Image image) {
-        return new ImageDto(image.getPath(), this.getUserInfo(image.getUser()), image.getCreatedTime(), image.getImageType());
+        return new ImageDto(this.getUserInfo(image.getUser()),
+                image.getCreatedTime(),
+                image.getFileName(),
+                image.getContentType(),
+                image.getUrl(),
+                image.getSize(),
+                image.getImageType());
     }
 
     public ReportReqDto getReportRequestInfo(ReportRequest reportRequest){
@@ -110,7 +110,7 @@ public class ResponseUtils {
         postDto.setCreatedUser(this.getUserInfo(post.getCreatedUser()));
         postDto.setCreatedDate(post.getCreatedTime());
         postDto.setAudience(post.getAudience().getAudienceType());
-        postDto.setCountLike(listLikes(post).size());
+        postDto.setCountLike(countLike(post));
         postDto.setCountComment(countComments(post));
         return postDto;
     }
@@ -122,8 +122,8 @@ public class ResponseUtils {
         commentDto.setCreatedUser(this.getUserInfo(comment.getCreatedUser()));
         commentDto.setContent(lastVersion.getContent());
         commentDto.setCreatedTime(lastVersion.getModifiedTime());
-        commentDto.setCountLikes(listLikes(comment).size());
-        commentDto.setCountComments(countComments(comment));
+        commentDto.setCountLikes(countLike(comment));
+        commentDto.setCountReply(countReply(comment));
         if (comment.getParentComment() != null) {
             commentDto.setParrentComment(getParrentComment(comment.getParentComment()));
         } else {
@@ -139,8 +139,8 @@ public class ResponseUtils {
         commentDto.setCreatedUser(this.getUserInfo(comment.getCreatedUser()));
         commentDto.setContent(lastVersion.getContent());
         commentDto.setCreatedTime(lastVersion.getModifiedTime());
-        commentDto.setCountLikes(listLikes(comment).size());
-        commentDto.setCountComments(countComments(comment));
+        commentDto.setCountLikes(countLike(comment));
+        commentDto.setCountReply(countReply(comment));
         List<Comment> commentList = commentRepository.findByParentComment(comment);
         List<CommentDto> childCommentList = new ArrayList<>();
         if (!commentList.isEmpty()) {
@@ -152,20 +152,23 @@ public class ResponseUtils {
         return commentDto;
     }
 
-    public List<LikePost> listLikes(Post post) {
-        return likePostRepository.findByPost(post);
+    public int countLike(Post post) {
+        return likePostRepository.findByPost(post).size();
     }
 
-    public List<LikeComment> listLikes(Comment comment) {
-        return likeCommentRepository.findByComment(comment);
+    public int countLike(Comment comment) {
+        return likeCommentRepository.findByComment(comment).size();
     }
 
     public int countComments(Post post) {
-        likePostRepository.findByPost(post);
-        return 0;
+        List<Comment> commentList = commentRepository.findByPost(post).stream()
+                .filter((Comment comment)-> !comment.isDeleted()).toList();
+        return commentList.size();
     }
 
-    public int countComments(Comment comment) {
-        return 0;
+    public int countReply(Comment comment) {
+        List<Comment> commentList = commentRepository.findByParentComment(comment).stream()
+                .filter((Comment childComment)-> !childComment.isDeleted()).toList();
+        return commentList.size();
     }
 }

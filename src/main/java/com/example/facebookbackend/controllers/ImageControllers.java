@@ -26,13 +26,8 @@ public class ImageControllers {
                                            @RequestParam MultipartFile file,
                                            @RequestParam String imageType) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        try {
-            return imageServices.uploadImage(currentUser, file, imageType);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Upload ảnh thất bại"));
-        }
+        return imageServices.uploadImage(currentUser, file, imageType);
     }
-
 
 //    @GetMapping(path = "/GetImage")
 //    public ResponseEntity<?> getImage(@RequestParam int imageId) {
@@ -47,14 +42,17 @@ public class ImageControllers {
     public ResponseEntity<?> getImageInfo(@RequestParam int imageId) {
         return imageServices.getImageInfo(imageId);
     }
+
     @GetMapping(path = "/GetCoverPhotoInfo")
     public ResponseEntity<?> getCoverPhotoInfo(@RequestParam int userId) {
         return imageServices.getUserCoverPhoto(userId);
     }
+
     @GetMapping(path = "/GetProfilePictureInfo")
     public ResponseEntity<?> getProfilePictureInfo(@RequestParam int userId) {
         return imageServices.getUserProfilePicture(userId);
     }
+
     @GetMapping(path = "/GetUserImageList")
     public ResponseEntity<?> getUserImageList(@RequestParam int userId,
                                               @RequestParam(required = false, defaultValue = "0") Integer page,

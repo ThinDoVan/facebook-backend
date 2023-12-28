@@ -30,7 +30,7 @@ public class FriendControllers {
                                                          @RequestParam(required = false, defaultValue = "0") Integer page,
                                                          @RequestParam(required = false, defaultValue = "5") Integer size) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return ResponseEntity.ok().body(friendServices.getSentAddFriendRequestList(currentUser, page, size));
+        return friendServices.getSentAddFriendRequestList(currentUser, page, size);
     }
 
     @GetMapping(path = "/request/Received")
@@ -38,7 +38,7 @@ public class FriendControllers {
                                                              @RequestParam(required = false, defaultValue = "0") Integer page,
                                                              @RequestParam(required = false, defaultValue = "5") Integer size) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return ResponseEntity.ok().body(friendServices.getReceivedAddFriendRequestList(currentUser, page, size));
+        return friendServices.getReceivedAddFriendRequestList(currentUser, page, size);
     }
 
     @PostMapping(path = "/request")
@@ -61,7 +61,7 @@ public class FriendControllers {
                                                @RequestParam(required = false, defaultValue = "0") Integer page,
                                                @RequestParam(required = false, defaultValue = "5") Integer size) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return ResponseEntity.ok().body(friendServices.getUserFriendList(currentUser, page, size));
+        return friendServices.getUserFriendList(currentUser, page, size);
     }
 
 }

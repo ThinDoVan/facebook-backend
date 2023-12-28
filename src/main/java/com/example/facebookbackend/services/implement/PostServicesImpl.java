@@ -1,12 +1,13 @@
 package com.example.facebookbackend.services.implement;
 
 import com.example.facebookbackend.dtos.request.PostRequest;
-import com.example.facebookbackend.dtos.request.ReportRequestDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.dtos.response.PostDto;
-import com.example.facebookbackend.entities.*;
+import com.example.facebookbackend.entities.Audience;
+import com.example.facebookbackend.entities.Post;
+import com.example.facebookbackend.entities.PostVersion;
+import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.EAudience;
-import com.example.facebookbackend.enums.ERequestStatus;
 import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.PostServices;
 import com.example.facebookbackend.utils.AccessControlUtils;

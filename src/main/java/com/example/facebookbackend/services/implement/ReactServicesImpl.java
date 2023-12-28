@@ -223,7 +223,7 @@ public class ReactServicesImpl implements ReactServices {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + reportRequestDto.getId()+" hoặc bài viết đã bị xóa"));
         } else {
             if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
-                if (!reportRequestRepository.findByPostAndCreatedUser(post.get(), currentUser).isEmpty()) {
+                if (reportRequestRepository.findByPostAndCreatedUser(post.get(), currentUser).isPresent()) {
                     return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn đã gửi báo cáo về bài viết này trước đây"));
                 } else {
                     ReportRequest request = new ReportRequest();

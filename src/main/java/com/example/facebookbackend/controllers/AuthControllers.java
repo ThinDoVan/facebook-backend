@@ -1,6 +1,5 @@
 package com.example.facebookbackend.controllers;
 
-import com.example.facebookbackend.dtos.request.ChangePasswordRequest;
 import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
 import com.example.facebookbackend.dtos.request.ResetPasswordRequest;
@@ -22,7 +21,10 @@ public class AuthControllers {
     public ResponseEntity<MessageResponse> registerAccount(@Valid @RequestBody RegisterRequest registerRequest){
         return userServices.registerAccount(registerRequest);
     }
-
+    @PostMapping(path = "/ActiveAccount")
+    public ResponseEntity<MessageResponse> activeAccount(@RequestParam String verificationCode){
+        return userServices.activeAccount(verificationCode);
+    }
     @PostMapping(path = "/Login")
     public ResponseEntity<?> loginAccount(@Valid @RequestBody LoginRequest loginRequest){
         return userServices.loginAccount(loginRequest);
@@ -37,4 +39,6 @@ public class AuthControllers {
     public ResponseEntity<MessageResponse> resetPassword(@RequestBody ResetPasswordRequest resetPasswordRequest){
         return userServices.resetPassword(resetPasswordRequest);
     }
+
+
 }

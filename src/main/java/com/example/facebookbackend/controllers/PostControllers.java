@@ -1,7 +1,6 @@
 package com.example.facebookbackend.controllers;
 
 import com.example.facebookbackend.dtos.request.PostRequest;
-import com.example.facebookbackend.dtos.request.ReportRequestDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping(path = "/post")
-public class PostController {
+public class PostControllers {
     @Autowired
     PostServices postServices;
 
