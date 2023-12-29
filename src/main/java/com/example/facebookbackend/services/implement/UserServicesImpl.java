@@ -5,6 +5,7 @@ import com.example.facebookbackend.dtos.request.RegisterRequest;
 import com.example.facebookbackend.dtos.request.ResetPasswordRequest;
 import com.example.facebookbackend.dtos.response.JwtResponse;
 import com.example.facebookbackend.dtos.response.MessageResponse;
+import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.entities.Role;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.entities.VerificationCode;
@@ -119,8 +120,6 @@ public class UserServicesImpl implements UserServices {
     }
 
 
-
-
     @Override
     public ResponseEntity<?> getUserByEmail(String email) {
         Optional<User> user = userRepository.findByEmail(email);
@@ -139,6 +138,33 @@ public class UserServicesImpl implements UserServices {
         } else {
             return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getUserInfo(user.get()));
         }
+    }
+
+    @Override
+    public ResponseEntity<MessageResponse> updateUserInfo(User currentUser, UserDto userInfo) {
+        if (userInfo.getFullname() != null && !userInfo.getFullname().isEmpty() && !userInfo.getFullname().isBlank()) {
+            currentUser.setFullName(userInfo.getFullname());
+        }
+        if (userInfo.getDateOfBirth() != null) {
+            currentUser.setDateOfBirth(userInfo.getDateOfBirth());
+        }
+        if (userInfo.getGender() != null && !userInfo.getGender().isEmpty() && !userInfo.getGender().isBlank()) {
+            currentUser.setGender(userInfo.getGender());
+        }
+        if (userInfo.getAddress() != null && !userInfo.getAddress().isEmpty() && !userInfo.getAddress().isBlank()) {
+            currentUser.setAddress(userInfo.getAddress());
+        }
+        if (userInfo.getCity() != null && !userInfo.getCity().isEmpty() && !userInfo.getCity().isBlank()) {
+            currentUser.setCity(userInfo.getCity());
+        }
+        if (userInfo.getSchool() != null && !userInfo.getSchool().isEmpty() && !userInfo.getSchool().isBlank()) {
+            currentUser.setSchool(userInfo.getSchool());
+        }
+        if (userInfo.getCompany() != null && !userInfo.getCompany().isEmpty() && !userInfo.getCompany().isBlank()) {
+            currentUser.setCompany(userInfo.getCompany());
+        }
+        userRepository.save(currentUser);
+        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Cập nhật thông tin cá nhân thành công"));
     }
 
     @Override

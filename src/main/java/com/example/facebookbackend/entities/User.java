@@ -35,6 +35,10 @@ public class User {
     private LocalDateTime lockUntil;
 
     private LocalDateTime createdTime;
+    private String address;
+    private String city;
+    private String school;
+    private String company;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",

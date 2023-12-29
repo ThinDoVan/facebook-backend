@@ -33,8 +33,15 @@ public class UserControllers {
 
     @PutMapping(path = "/ChangePassword")
     public ResponseEntity<MessageResponse> changePassword(@AuthenticationPrincipal UserDetails userDetails,
-                                                          @RequestBody String currentPassword){
+                                                          @RequestBody String currentPassword) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return userServices.changePassword(currentUser, currentPassword);
+    }
+
+    @PutMapping(path = "/UpdateUserInfo")
+    public ResponseEntity<MessageResponse> updateUserInfo(@AuthenticationPrincipal UserDetails userDetails,
+                                                          @RequestBody UserDto userInfo) {
+        User currentUser = ((UserDetailsImpl) userDetails).getUser();
+        return userServices.updateUserInfo(currentUser, userInfo);
     }
 }
