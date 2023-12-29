@@ -94,15 +94,10 @@ public class PostServicesImpl implements PostServices {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id: " + userId));
         } else {
             List<PostDto> postDtoList = new ArrayList<>();
-            List<Post> postList = postRepository.findAllByCreatedUserAndAudience(authorUser.get(), getAudience(EAudience.PUBLIC));
-            if ((accessControlUtils.isFriend(currentUser, authorUser.get())) || (accessControlUtils.isAdmin(currentUser)) || (currentUser.equals(authorUser.get()))) {
-                postList.addAll(postRepository.findAllByCreatedUserAndAudience(authorUser.get(), getAudience(EAudience.FRIENDS)));
-            }
-            if ((currentUser.equals(authorUser.get())) || (accessControlUtils.isAdmin(currentUser))) {
-                postList.addAll(postRepository.findAllByCreatedUserAndAudience(authorUser.get(), getAudience(EAudience.ONLYME)));
-            }
+            List<Post> postList = postRepository.findAllByCreatedUser(authorUser.get());
             postList = postList.stream()
                     .filter(post -> !post.isDeleted())
+                    .filter(post -> accessControlUtils.checkReadPermission(currentUser, post))
                     .sorted(Comparator.comparing(Post::getPostId))
                     .collect(Collectors.toList());
             for (Post post : postList) {
@@ -115,7 +110,6 @@ public class PostServicesImpl implements PostServices {
             }
         }
     }
-
 
     @Override
     public ResponseEntity<MessageResponse> updatePost(User currentUser, Integer postId, PostRequest

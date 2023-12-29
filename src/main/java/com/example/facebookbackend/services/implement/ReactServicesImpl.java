@@ -52,18 +52,19 @@ public class ReactServicesImpl implements ReactServices {
         if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId + " hoặc bài viết đã bị xóa"));
         } else {
-            if (likePostRepository.findByPostAndUser(post.get(), currentUser).isPresent()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bài viết này trước đây"));
+            if (!accessControlUtils.checkReadPermission(currentUser, post.get())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền thích bài viết này"));
             } else {
-                if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
+                if (likePostRepository.findByPostAndUser(post.get(), currentUser).isPresent()) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bài viết này trước đây"));
+                } else {
                     LikePost likePost = new LikePost();
                     likePost.setPost(post.get());
                     likePost.setUser(currentUser);
                     likePost.setCreatedTime(LocalDateTime.now());
                     likePostRepository.save(likePost);
                     return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn đã thích bài viết"));
-                } else {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền thích bài viết này"));
+
                 }
             }
         }
@@ -75,7 +76,9 @@ public class ReactServicesImpl implements ReactServices {
         if (post.isEmpty() || post.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id: " + commentRequest.getRepliedItemId() + " hoặc bài viết đã bị xóa"));
         } else {
-            if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
+            if (!accessControlUtils.checkReadPermission(currentUser, post.get())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền bình luận bài viết này"));
+            } else {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Bình luận thiếu nội dung"));
                 } else {
@@ -91,8 +94,6 @@ public class ReactServicesImpl implements ReactServices {
                     commentVersionRepository.save(commentVersion);
                     return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn đã bình luận bài viết"));
                 }
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền bình luận bài viết này"));
             }
         }
     }
@@ -103,18 +104,18 @@ public class ReactServicesImpl implements ReactServices {
         if (comment.isEmpty() || comment.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentId + " hoặc bình luận đã bị xóa"));
         } else {
-            if (likeCommentRepository.findByCommentAndUser(comment.get(), currentUser).isPresent()) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bình luận này trước đây"));
+            if (!accessControlUtils.checkReadPermission(currentUser, comment.get().getPost())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền thích bình luận này"));
             } else {
-                if (accessControlUtils.checkReadPermission(currentUser, comment.get().getPost())) {
+                if (likeCommentRepository.findByCommentAndUser(comment.get(), currentUser).isPresent()) {
+                    return ResponseEntity.status(HttpStatus.CONFLICT).body(new MessageResponse("Bạn đã thích bình luận này trước đây"));
+                } else {
                     LikeComment likeComment = new LikeComment();
                     likeComment.setComment(comment.get());
                     likeComment.setUser(currentUser);
                     likeComment.setCreatedTime(LocalDateTime.now());
                     likeCommentRepository.save(likeComment);
                     return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn đã thích bình luận"));
-                } else {
-                    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền thích bình luận này"));
                 }
             }
         }
@@ -126,7 +127,9 @@ public class ReactServicesImpl implements ReactServices {
         if (parentComment.isEmpty() || parentComment.get().isDeleted()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId() + " hoặc bình luận đã bị xóa"));
         } else {
-            if (accessControlUtils.checkReadPermission(currentUser, parentComment.get().getPost())) {
+            if (!accessControlUtils.checkReadPermission(currentUser, parentComment.get().getPost())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền trả lời bình luận này"));
+            }else {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
                     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Bình luận thiếu nội dung"));
                 } else {
@@ -143,8 +146,6 @@ public class ReactServicesImpl implements ReactServices {
 
                     return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Bạn đã trả lời bình luận"));
                 }
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền trả lời bình luận này"));
             }
         }
     }

@@ -2,8 +2,8 @@ package com.example.facebookbackend.services.implement;
 
 import com.example.facebookbackend.dtos.request.AddFriendRequest;
 import com.example.facebookbackend.dtos.response.FriendRequestDto;
-import com.example.facebookbackend.dtos.response.FriendshipDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
+import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.entities.FriendRequest;
 import com.example.facebookbackend.entities.Friendship;
 import com.example.facebookbackend.entities.User;
@@ -129,20 +129,27 @@ public class FriendServicesImpl implements FriendServices {
         }
     }
 
-
     @Override
     public ResponseEntity<?> getUserFriendList(User currentUser, Integer page, Integer size) {
-        List<FriendshipDto> friendRequestDtoList = new ArrayList<>();
-        for (Friendship result : friendshipRepository.findByUser1(currentUser)) {
-            friendRequestDtoList.add(responseUtils.getFriendshipInfo(result));
-        }
-        for (Friendship result : friendshipRepository.findByUser2(currentUser)) {
-            friendRequestDtoList.add(responseUtils.getFriendshipInfo(result));
+        List<UserDto> friendsList = new ArrayList<>();
+        for (User result : getFriendList(currentUser)) {
+            friendsList.add(responseUtils.getUserInfo(result));
         }
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendRequestDtoList, page, size));
+            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(friendsList, page, size));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
         }
+    }
+
+    public List<User> getFriendList(User user) {
+        List<User> friendsList = new ArrayList<>();
+        for (Friendship result : friendshipRepository.findByUser1(user)) {
+            friendsList.add(result.getUser2());
+        }
+        for (Friendship result : friendshipRepository.findByUser2(user)) {
+            friendsList.add(result.getUser1());
+        }
+        return friendsList;
     }
 }

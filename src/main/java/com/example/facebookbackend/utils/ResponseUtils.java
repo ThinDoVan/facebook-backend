@@ -59,10 +59,6 @@ public class ResponseUtils {
         return new PageImpl<>(pageData, pageRequest, list.size());
     }
 
-    public FriendshipDto getFriendshipInfo(Friendship friendship) {
-        return friendship!=null?modelMapper.map(friendship, FriendshipDto.class):null;
-    }
-
     public FriendRequestDto getFriendRequestInfo(FriendRequest friendRequest) {
         return friendRequest!=null?modelMapper.map(friendRequest, FriendRequestDto.class):null;
     }

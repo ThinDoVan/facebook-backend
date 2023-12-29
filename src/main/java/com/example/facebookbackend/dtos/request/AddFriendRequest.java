@@ -8,5 +8,4 @@ public class AddFriendRequest {
     @NotEmpty
     private String toUserEmail;
     private String message;
-
 }
