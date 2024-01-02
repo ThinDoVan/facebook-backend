@@ -17,11 +17,6 @@ import java.util.concurrent.TimeUnit;
 public class UserDetailsServiceImpl implements UserDetailsService {
     @Autowired
     UserRepository userRepository;
-//    @Override
-//    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-//        User user = userRepository.findByEmail(email).orElseThrow(()->new UsernameNotFoundException("Không tìm thấy người dùng: "+email));
-//        return UserDetailsImpl.build(user);
-//    }
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -41,9 +36,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
                 + TimeUnit.MILLISECONDS.toMinutes(remainingMiliSeconds)%60+" phút "
                 + TimeUnit.MILLISECONDS.toSeconds(remainingMiliSeconds)%60+" giây");
             }
-//            if (!user.isEnabled() || new Date().before(user.getLockUntilDate())) {
-//                throw new Exception("Account is disabled");
-//            }
+
             return UserDetailsImpl.build(user.get());
         }
     }

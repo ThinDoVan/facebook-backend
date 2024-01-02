@@ -22,12 +22,13 @@ public class UserControllers {
     ModelMapper modelMapper;
 
     @GetMapping(path = "/FindUser")
-    public ResponseEntity<?> getUser(@RequestParam String userEmail) {
-        return userServices.getUserByEmail(userEmail);
+    public ResponseEntity<UserDto> getUser(@RequestParam String userEmail) {
+        UserDto result = userServices.getUserByEmail(userEmail);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping(path = "/CurrentUser")
-    public ResponseEntity<?> getUser(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<UserDto> getUser(@AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok().body(modelMapper.map(((UserDetailsImpl) userDetails).getUser(), UserDto.class));
     }
 
@@ -35,13 +36,13 @@ public class UserControllers {
     public ResponseEntity<MessageResponse> changePassword(@AuthenticationPrincipal UserDetails userDetails,
                                                           @RequestBody String currentPassword) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return userServices.changePassword(currentUser, currentPassword);
+        return ResponseEntity.ok(userServices.changePassword(currentUser, currentPassword));
     }
 
     @PutMapping(path = "/UpdateUserInfo")
     public ResponseEntity<MessageResponse> updateUserInfo(@AuthenticationPrincipal UserDetails userDetails,
                                                           @RequestBody UserDto userInfo) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return userServices.updateUserInfo(currentUser, userInfo);
+        return ResponseEntity.ok(userServices.updateUserInfo(currentUser, userInfo));
     }
 }

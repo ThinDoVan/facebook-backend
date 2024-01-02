@@ -1,10 +1,12 @@
 package com.example.facebookbackend.services;
 
+import com.example.facebookbackend.dtos.response.MessageResponse;
+import com.example.facebookbackend.dtos.response.ReportReqDto;
 import com.example.facebookbackend.entities.User;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 
 public interface AdminServices {
-    ResponseEntity<?> getListPostReport(Integer postId, Integer page, Integer size);
-    ResponseEntity<?> getReportRequest(Integer reportId);
-    ResponseEntity<?> handleReport(User admin, Integer reportId, Boolean isApproved);
+    Page<ReportReqDto> getListPostReport(Integer postId, Integer page, Integer size);
+    ReportReqDto getReportRequest(Integer reportId);
+    MessageResponse handleReport(User admin, Integer reportId, Boolean isApproved);
 }

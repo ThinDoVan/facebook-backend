@@ -1,6 +1,5 @@
 package com.example.facebookbackend.services.implement;
 
-import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.dtos.response.PostDto;
 import com.example.facebookbackend.dtos.response.UserDto;
 import com.example.facebookbackend.entities.PostVersion;
@@ -11,8 +10,7 @@ import com.example.facebookbackend.services.SearchServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
 import com.example.facebookbackend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,7 +29,7 @@ public class SearchServicesImpl implements SearchServices {
     AccessControlUtils accessControlUtils;
 
     @Override
-    public ResponseEntity<?> searchUser(User currentUser, String name, String relationship, String city, String school, String company, Integer page, Integer size) {
+    public Page<UserDto> searchUser(User currentUser, String name, String relationship, String city, String school, String company, Integer page, Integer size) {
         List<User> userList = userRepository.findUserByFullNameContains(name).stream()
                 .filter(User::isEnable)
                 .filter(user -> {
@@ -51,15 +49,15 @@ public class SearchServicesImpl implements SearchServices {
             userDtoList.add(responseUtils.getUserInfo(user));
         }
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(userDtoList, page, size));
+            return responseUtils.pagingList(userDtoList, page, size);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+            throw new IllegalArgumentException("Quá số lượng trang tối đa");
         }
     }
 
     //Chưa kiểm tra quyền xem bài viết
     @Override
-    public ResponseEntity<?> searchPost(User currentUser, String keyword, String postedBy, Integer postYear, Integer page, Integer size) {
+    public Page<PostDto> searchPost(User currentUser, String keyword, String postedBy, Integer postYear, Integer page, Integer size) {
 
         List<PostVersion> postVersionList = postVersionRepository.findByContentContains('%'+keyword+'%').stream()
                 .filter(postVersion -> !postVersion.getPost().isDeleted())
@@ -88,9 +86,9 @@ public class SearchServicesImpl implements SearchServices {
             postDtoList.add(responseUtils.getPostInfo(result.getPost()));
         }
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(postDtoList, page, size));
+            return responseUtils.pagingList(postDtoList, page, size);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+            throw new IllegalArgumentException("Quá số lượng trang tối đa");
         }
     }
 }

@@ -1,18 +1,17 @@
 package com.example.facebookbackend.controllers;
 
+import com.example.facebookbackend.dtos.response.ImageDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.ImageServices;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -22,41 +21,36 @@ public class ImageControllers {
     ImageServices imageServices;
 
     @PostMapping(path = "/UploadPhoto")
-    public ResponseEntity<?> updatePicture(@AuthenticationPrincipal UserDetails userDetails,
-                                           @RequestParam MultipartFile file,
-                                           @RequestParam String imageType) {
+    public ResponseEntity<MessageResponse> updatePicture(@AuthenticationPrincipal UserDetails userDetails,
+                                                         @RequestParam MultipartFile file,
+                                                         @RequestParam String imageType) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return imageServices.uploadImage(currentUser, file, imageType);
+        return ResponseEntity.ok(imageServices.uploadImage(currentUser, file, imageType));
     }
 
-//    @GetMapping(path = "/GetImage")
-//    public ResponseEntity<?> getImage(@RequestParam int imageId) {
-//        try {
-//            return imageServices.getImage(imageId);
-//        } catch (IOException e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Tải ảnh thất bại"));
-//        }
-//    }
-
     @GetMapping(path = "/GetImageInfo")
-    public ResponseEntity<?> getImageInfo(@RequestParam int imageId) {
-        return imageServices.getImageInfo(imageId);
+    public ResponseEntity<ImageDto> getImageInfo(@RequestParam int imageId) {
+        ImageDto result = imageServices.getImageInfo(imageId);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping(path = "/GetCoverPhotoInfo")
     public ResponseEntity<?> getCoverPhotoInfo(@RequestParam int userId) {
-        return imageServices.getUserCoverPhoto(userId);
+        ImageDto result = imageServices.getUserCoverPhoto(userId);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping(path = "/GetProfilePictureInfo")
-    public ResponseEntity<?> getProfilePictureInfo(@RequestParam int userId) {
-        return imageServices.getUserProfilePicture(userId);
+    public ResponseEntity<ImageDto> getProfilePictureInfo(@RequestParam int userId) {
+        ImageDto result = imageServices.getUserProfilePicture(userId);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping(path = "/GetUserImageList")
-    public ResponseEntity<?> getUserImageList(@RequestParam int userId,
-                                              @RequestParam(required = false, defaultValue = "0") Integer page,
-                                              @RequestParam(required = false, defaultValue = "5") Integer size) {
-        return imageServices.getUserImageList(userId, page, size);
+    public ResponseEntity<Page<ImageDto>> getUserImageList(@RequestParam int userId,
+                                                           @RequestParam(required = false, defaultValue = "0") Integer page,
+                                                           @RequestParam(required = false, defaultValue = "5") Integer size) {
+        Page<ImageDto> result = imageServices.getUserImageList(userId, page, size);
+        return ResponseEntity.ok(result);
     }
 }

@@ -1,22 +1,17 @@
 package com.example.facebookbackend.services;
 
+import com.example.facebookbackend.dtos.response.ImageDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.User;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-
 public interface ImageServices {
-    ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile multipartFile, String imageType);
+    MessageResponse uploadImage(User currentUser, MultipartFile multipartFile, String imageType);
 //    ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile multipartFile);
-
     //    ResponseEntity<?> getImage(int imageId) throws IOException;
-    ResponseEntity<?> getImageInfo(int imageId);
-
-    ResponseEntity<?> getUserImageList(int userId, Integer page, Integer size);
-
-    ResponseEntity<?> getUserProfilePicture(int userId);
-
-    ResponseEntity<?> getUserCoverPhoto(int userId);
+    ImageDto getImageInfo(int imageId);
+    Page<ImageDto> getUserImageList(int userId, Integer page, Integer size);
+    ImageDto getUserProfilePicture(int userId);
+    ImageDto getUserCoverPhoto(int userId);
 }

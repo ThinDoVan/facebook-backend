@@ -8,13 +8,15 @@ import com.example.facebookbackend.entities.Post;
 import com.example.facebookbackend.entities.PostVersion;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.EAudience;
+import com.example.facebookbackend.exceptions.DataNotFoundException;
+import com.example.facebookbackend.exceptions.InvalidDataException;
+import com.example.facebookbackend.exceptions.NotAllowedException;
 import com.example.facebookbackend.repositories.*;
 import com.example.facebookbackend.services.PostServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
 import com.example.facebookbackend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -45,9 +47,9 @@ public class PostServicesImpl implements PostServices {
     ResponseUtils responseUtils;
 
     @Override
-    public ResponseEntity<MessageResponse> createPost(User currentUser, PostRequest postRequest) {
+    public MessageResponse createPost(User currentUser, PostRequest postRequest) {
         if (postRequest.getContent() == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Bài viết thiếu nội dung"));
+            throw new InvalidDataException("Bài viết thiếu nội dung");
         }
         Post post = new Post();
         post.setCreatedUser(currentUser);
@@ -68,30 +70,30 @@ public class PostServicesImpl implements PostServices {
                 post.getCreatedTime());
         postVersionRepository.save(postVersion);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(new MessageResponse("Tạo bài viết thành công"));
+        return new MessageResponse("Tạo bài viết thành công");
     }
 
 
     @Override
-    public ResponseEntity<?> getPost(User currentUser, int postId) {
+    public PostDto getPost(User currentUser, int postId) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId + " hoặc bài viết đã bị xóa"));
+            throw new DataNotFoundException("Không tìm thấy bài viết có id: " + postId + " hoặc bài viết đã bị xóa");
         } else {
             if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
-                return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getPostInfo(post.get()));
+                return responseUtils.getPostInfo(post.get());
             } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền xem bài viết"));
+                throw new NotAllowedException("Bạn không có quyền xem bài viết");
             }
         }
     }
 
 
     @Override
-    public ResponseEntity<?> getUserPostList(User currentUser, Integer userId, Integer page, Integer size) {
+    public Page<PostDto> getUserPostList(User currentUser, Integer userId, Integer page, Integer size) {
         Optional<User> authorUser = userRepository.findById(userId);
         if (authorUser.isEmpty() || !currentUser.isEnable()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id: " + userId));
+            throw new DataNotFoundException("Không tìm thấy người dùng có Id: " + userId);
         } else {
             List<PostDto> postDtoList = new ArrayList<>();
             List<Post> postList = postRepository.findAllByCreatedUser(authorUser.get());
@@ -104,22 +106,22 @@ public class PostServicesImpl implements PostServices {
                 postDtoList.add(responseUtils.getPostInfo(post));
             }
             try {
-                return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(postDtoList, page, size));
+                return responseUtils.pagingList(postDtoList, page, size);
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+                throw new IllegalArgumentException("Quá số lượng trang tối đa");
             }
         }
     }
 
     @Override
-    public ResponseEntity<MessageResponse> updatePost(User currentUser, Integer postId, PostRequest
+    public MessageResponse updatePost(User currentUser, Integer postId, PostRequest
             postRequest) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId + " hoặc bài viết đã bị xóa"));
+            throw new DataNotFoundException("Không tìm thấy bài viết có id: " + postId + " hoặc bài viết đã bị xóa");
         } else {
             if (!accessControlUtils.checkEditPermission(currentUser, post.get().getCreatedUser())) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền sửa bài viết này"));
+                throw new NotAllowedException("Bạn không có quyền sửa bài viết này");
             } else {
                 if (postRequest.getAudience() != null) {
                     switch (postRequest.getAudience().toLowerCase()) {
@@ -134,26 +136,26 @@ public class PostServicesImpl implements PostServices {
                             LocalDateTime.now());
                     postVersionRepository.save(postVersion);
                 }
-                return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Sửa bài viết thành công"));
+                return new MessageResponse("Sửa bài viết thành công");
             }
         }
     }
 
 
     @Override
-    public ResponseEntity<MessageResponse> deletePost(User currentUser, Integer postId) {
+    public MessageResponse deletePost(User currentUser, Integer postId) {
         Optional<Post> post = postRepository.findById(postId);
         if (post.isEmpty() || post.get().isDeleted()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có id: " + postId + " hoặc bài viết đã bị xóa"));
+            throw new DataNotFoundException("Không tìm thấy bài viết có id: " + postId + " hoặc bài viết đã bị xóa");
         } else {
             if (accessControlUtils.checkDeletePermission(currentUser, post.get().getCreatedUser())) {
                 post.get().setDeleted(true);
                 post.get().setDeletedUser(currentUser);
                 post.get().setDeletedTime(LocalDateTime.now());
                 postRepository.save(post.get());
-                return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Xóa bài viết thành công"));
+                return new MessageResponse("Xóa bài viết thành công");
             } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Bạn không có quyền xóa bài viết này"));
+                throw new NotAllowedException("Bạn không có quyền xóa bài viết này");
             }
         }
     }

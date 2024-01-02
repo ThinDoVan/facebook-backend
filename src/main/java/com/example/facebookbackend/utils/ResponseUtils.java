@@ -51,11 +51,11 @@ public class ResponseUtils {
         mailSender.send(message);
     }
 
-    public Page<?> pagingList(List<?> list, int page, int size) throws IllegalArgumentException{
+    public <T> Page<T> pagingList(List<T> list, int page, int size) throws IllegalArgumentException{
         PageRequest pageRequest = PageRequest.of(page, size);
         int start = (int) pageRequest.getOffset();
         int end = Math.min((start + pageRequest.getPageSize()), list.size());
-        List<?> pageData = list.subList(start, end);
+        List<T> pageData = list.subList(start, end);
         return new PageImpl<>(pageData, pageRequest, list.size());
     }
 

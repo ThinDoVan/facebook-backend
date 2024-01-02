@@ -1,6 +1,7 @@
 package com.example.facebookbackend.securities.services;
 
 import com.example.facebookbackend.entities.User;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -9,6 +10,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Getter
 public class UserDetailsImpl implements UserDetails {
 
     private User user;
@@ -19,10 +21,6 @@ public class UserDetailsImpl implements UserDetails {
 
     public static UserDetailsImpl build(User user) {
         return new UserDetailsImpl(user);
-    }
-
-    public User getUser() {
-        return user;
     }
 
     public void setUser(User user) {

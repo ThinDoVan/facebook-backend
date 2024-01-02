@@ -7,13 +7,13 @@ import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.Image;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.EImageType;
+import com.example.facebookbackend.exceptions.DataNotFoundException;
 import com.example.facebookbackend.repositories.ImageRepository;
 import com.example.facebookbackend.repositories.UserRepository;
 import com.example.facebookbackend.services.ImageServices;
 import com.example.facebookbackend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -80,7 +80,7 @@ public class ImageServicesImpl implements ImageServices {
 //    }
 
     @Override
-    public ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile multipartFile, String imageType) {
+    public MessageResponse uploadImage(User currentUser, MultipartFile multipartFile, String imageType) {
         try {
             Map uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(), ObjectUtils.emptyMap());
             System.out.println(uploadResult);
@@ -98,27 +98,27 @@ public class ImageServicesImpl implements ImageServices {
                 default -> image.setImageType(EImageType.POST_PHOTO);
             }
             imageRepository.save(image);
-            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Tải ảnh thành công"));
+            return new MessageResponse("Tải ảnh thành công");
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new MessageResponse("Tải ảnh thất bại"));
+            return new MessageResponse("Tải ảnh thất bại");
         }
     }
 
     @Override
-    public ResponseEntity<?> getImageInfo(int imageId) {
+    public ImageDto getImageInfo(int imageId) {
         Optional<Image> image = imageRepository.findById(imageId);
         if (image.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy hình ảnh có Id " + imageId));
+            throw new DataNotFoundException("Không tìm thấy hình ảnh có Id " + imageId);
         } else {
-            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getImageInfo(image.get()));
+            return responseUtils.getImageInfo(image.get());
         }
     }
 
     @Override
-    public ResponseEntity<?> getUserImageList(int userId, Integer page, Integer size) {
+    public Page<ImageDto> getUserImageList(int userId, Integer page, Integer size) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
+            throw new DataNotFoundException("Không tìm thấy người dùng có Id " + userId);
         } else {
             List<Image> imageList = imageRepository.findByUser(user.get());
             List<ImageDto> imageDtoList = new ArrayList<>();
@@ -127,18 +127,18 @@ public class ImageServicesImpl implements ImageServices {
             }
             imageDtoList = imageDtoList.stream().sorted(Comparator.comparing(ImageDto::getImageType)).collect(Collectors.toList());
             try {
-                return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(imageDtoList, page, size));
+                return responseUtils.pagingList(imageDtoList, page, size);
             } catch (IllegalArgumentException e) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Quá số lượng trang tối đa"));
+                throw new IllegalArgumentException("Quá số lượng trang tối đa");
             }
         }
     }
 
     @Override
-    public ResponseEntity<?> getUserProfilePicture(int userId) {
+    public ImageDto getUserProfilePicture(int userId) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
+            throw new DataNotFoundException("Không tìm thấy người dùng có Id " + userId);
         } else {
             List<Image> listProfilePicture = imageRepository.findByUser(user.get()).stream()
                     .filter(image -> image.getImageType() == EImageType.PROFILE_PICTURE)
@@ -147,15 +147,15 @@ public class ImageServicesImpl implements ImageServices {
             for (Image image : listProfilePicture) {
                 currentProfilePicture = image;
             }
-            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getImageInfo(currentProfilePicture));
+            return responseUtils.getImageInfo(currentProfilePicture);
         }
     }
 
     @Override
-    public ResponseEntity<?> getUserCoverPhoto(int userId) {
+    public ImageDto getUserCoverPhoto(int userId) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có Id " + userId));
+            throw new DataNotFoundException("Không tìm thấy người dùng có Id " + userId);
         } else {
             List<Image> listProfilePicture = imageRepository.findByUser(user.get()).stream()
                     .filter(image -> image.getImageType() == EImageType.COVER_PHOTO)
@@ -164,7 +164,7 @@ public class ImageServicesImpl implements ImageServices {
             for (Image image : listProfilePicture) {
                 currentProfilePicture = image;
             }
-            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getImageInfo(currentProfilePicture));
+            return responseUtils.getImageInfo(currentProfilePicture);
         }
     }
 }

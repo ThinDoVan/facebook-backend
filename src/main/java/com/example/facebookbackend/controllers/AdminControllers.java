@@ -21,12 +21,12 @@ public class AdminControllers {
             @RequestParam(required = false) Integer postId,
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "5") Integer size) {
-        return adminServices.getListPostReport(postId, page, size);
+        return ResponseEntity.ok(adminServices.getListPostReport(postId, page, size));
     }
 
     @GetMapping(path = "/GetReport")
     public ResponseEntity<?> getListReport(@RequestParam Integer reportId) {
-        return adminServices.getReportRequest(reportId);
+        return ResponseEntity.ok(adminServices.getReportRequest(reportId));
     }
 
     @PutMapping(path = "/ReportHandling")
@@ -34,6 +34,6 @@ public class AdminControllers {
                                             @RequestParam Integer reportId,
                                             @RequestParam Boolean isAprroved) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return adminServices.handleReport(currentUser, reportId, isAprroved);
+        return ResponseEntity.ok(adminServices.handleReport(currentUser, reportId, isAprroved));
     }
 }
