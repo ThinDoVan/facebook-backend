@@ -21,9 +21,14 @@ public class UserControllers {
     @Autowired
     ModelMapper modelMapper;
 
-    @GetMapping(path = "/FindUser")
+    @GetMapping(path = "/GetByEmail")
     public ResponseEntity<UserDto> getUser(@RequestParam String userEmail) {
         UserDto result = userServices.getUserByEmail(userEmail);
+        return ResponseEntity.ok(result);
+    }
+    @GetMapping(path = "/GetById")
+    public ResponseEntity<UserDto> getUser(@RequestParam int userId) {
+        UserDto result = userServices.getUserById(userId);
         return ResponseEntity.ok(result);
     }
 

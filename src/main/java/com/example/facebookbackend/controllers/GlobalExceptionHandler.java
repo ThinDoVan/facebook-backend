@@ -44,12 +44,4 @@ public class GlobalExceptionHandler {
         return errorResponse;
     }
 
-    @ExceptionHandler(CertificateExpiredException.class)
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ResponseBody
-    public MessageResponse handleCertificateExpiredException(RuntimeException ex){
-        MessageResponse errorResponse = new MessageResponse();
-        errorResponse.setMessage(ex.getMessage());
-        return errorResponse;
-    }
 }

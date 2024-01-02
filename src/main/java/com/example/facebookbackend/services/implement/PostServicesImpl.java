@@ -73,7 +73,6 @@ public class PostServicesImpl implements PostServices {
         return new MessageResponse("Tạo bài viết thành công");
     }
 
-
     @Override
     public PostDto getPost(User currentUser, int postId) {
         Optional<Post> post = postRepository.findById(postId);
@@ -87,7 +86,6 @@ public class PostServicesImpl implements PostServices {
             }
         }
     }
-
 
     @Override
     public Page<PostDto> getUserPostList(User currentUser, Integer userId, Integer page, Integer size) {
@@ -141,7 +139,6 @@ public class PostServicesImpl implements PostServices {
         }
     }
 
-
     @Override
     public MessageResponse deletePost(User currentUser, Integer postId) {
         Optional<Post> post = postRepository.findById(postId);
@@ -159,7 +156,6 @@ public class PostServicesImpl implements PostServices {
             }
         }
     }
-
 
     private Audience getAudience(EAudience eAudience) {
         return audienceRepository.findByAudienceType(eAudience).orElseThrow(() -> new RuntimeException("Không tìm thấy Audience"));

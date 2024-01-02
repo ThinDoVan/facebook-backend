@@ -40,11 +40,9 @@ public class FriendServicesImpl implements FriendServices {
     ResponseUtils responseUtils;
 
     public MessageResponse createAddFriendRequest(User sender, AddFriendRequest addFriendRequest) {
-
         Optional<User> receiver = userRepository.findByEmail(addFriendRequest.getToUserEmail());
         if (receiver.isEmpty() || !receiver.get().isEnable()) {
             throw new DataNotFoundException("Không tìm thấy người dùng có email: " + addFriendRequest.getToUserEmail());
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy người dùng có email: " + addFriendRequest.getToUserEmail()));
         } else if (sender.equals(receiver.get())) {
             throw new InvalidDataException("Không thể tự kết bạn với chính mình");
         } else {

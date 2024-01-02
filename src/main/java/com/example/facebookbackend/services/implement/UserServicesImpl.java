@@ -105,13 +105,12 @@ public class UserServicesImpl implements UserServices {
 
     @Override
     public JwtResponse loginAccount(LoginRequest loginRequest) {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            String jwt = jwtUtils.generateJwtToken(authentication);
-            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-            Set<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
-            return new JwtResponse(jwt, userDetails.getUsername(), roles);
-
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String jwt = jwtUtils.generateJwtToken(authentication);
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        Set<String> roles = userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toSet());
+        return new JwtResponse(jwt, userDetails.getUsername(), roles);
     }
 
 
@@ -201,11 +200,6 @@ public class UserServicesImpl implements UserServices {
         }
     }
 
-    @Override
-    public MessageResponse disableAccount(User currentUser) {
-        return null;
-    }
-
     private String generateOTP() {
         String allowedChars = "0123456789";
         Random random = new Random();
@@ -225,7 +219,7 @@ public class UserServicesImpl implements UserServices {
                 .replace("${code}", verificationCode.getVerificationCode())
                 .replace("${username}", user.getFullName())
                 .replace("${time}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-//            responseUtils.sendEmail(user, emailType.getSubject(), content);
+        responseUtils.sendEmail(user, emailType.getSubject(), content);
         verificationCode.setExpiredTime(LocalDateTime.now().plusMinutes(5));
         verificationCodeRepository.save(verificationCode);
     }

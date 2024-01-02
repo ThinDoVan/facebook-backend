@@ -34,51 +34,6 @@ public class ImageServicesImpl implements ImageServices {
     @Autowired
     Cloudinary cloudinary;
 
-//    @Override
-//    public ResponseEntity<MessageResponse> uploadImage(User currentUser, MultipartFile file, String imageType) throws IOException {
-//        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
-//            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new MessageResponse("Chỉ cho phép tải hình ảnh lên"));
-//        } else {
-//            Image image = new Image();
-//            image.setUser(currentUser);
-//            image.setCreatedTime(LocalDateTime.now());
-//            String uploadDir;
-//            switch (imageType.toLowerCase()) {
-//                case "avatar", "profile picture", "profilepicture", "profile_picture" -> {
-//                    image.setImageType(EImageType.PROFILE_PICTURE);
-//                    uploadDir = "img/ProfilePicture/" + currentUser.getUserId();
-//                }
-//                case "cover photo", "coverphoto", "cover_photo" -> {
-//                    image.setImageType(EImageType.COVER_PHOTO);
-//                    uploadDir = "img/CoverPhoto/" + currentUser.getUserId();
-//                }
-//                default -> {
-//                    image.setImageType(EImageType.POST_PHOTO);
-//                    uploadDir = "img/PostPhoto/" + currentUser.getUserId();
-//                }
-//            }
-//            String fileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-//            File newFile = new File(uploadDir, fileName);
-//            if (!newFile.exists()) {
-//                newFile.getParentFile().mkdirs();
-//                newFile.createNewFile();
-//
-//            }
-//            InputStream inputStream = file.getInputStream();
-//            OutputStream outputStream = new FileOutputStream(newFile);
-//            byte[] buffer = new byte[2048];
-//            int length;
-//            while ((length = inputStream.read(buffer)) != -1) {
-//                outputStream.write(buffer, 0, length);
-//            }
-//            inputStream.close();
-//            outputStream.close();
-//            image.setUrl(newFile.getPath());
-//            imageRepository.save(image);
-//            return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Tải ảnh thành công"));
-//        }
-//    }
-
     @Override
     public MessageResponse uploadImage(User currentUser, MultipartFile multipartFile, String imageType) {
         try {

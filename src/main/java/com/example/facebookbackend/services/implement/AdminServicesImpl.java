@@ -51,7 +51,6 @@ public class AdminServicesImpl implements AdminServices {
             Optional<Post> post = postRepository.findById(postId);
             if (post.isEmpty()) {
                 throw new DataNotFoundException("Không tìm thấy bài viết có Id " + postId);
-//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy bài viết có Id " + postId));
             } else {
                 reportRequestList = reportRequestRepository.findByPost(post.get());
             }
@@ -61,7 +60,6 @@ public class AdminServicesImpl implements AdminServices {
             reportReqDtoList.add(responseUtils.getReportRequestInfo(reportRequest));
         }
         return responseUtils.pagingList(reportReqDtoList, page, size);
-//        return ResponseEntity.status(HttpStatus.OK).body(responseUtils.pagingList(reportReqDtoList, page, size));
     }
 
     @Override
@@ -69,10 +67,8 @@ public class AdminServicesImpl implements AdminServices {
         Optional<ReportRequest> request = reportRequestRepository.findById(reportId);
         if (request.isEmpty()) {
             throw new DataNotFoundException("Không tìm thấy Report Request có Id " + reportId);
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new MessageResponse("Không tìm thấy Report Request có Id " + reportId));
         } else {
             return responseUtils.getReportRequestInfo(request.get());
-//            return ResponseEntity.status(HttpStatus.OK).body(responseUtils.getReportRequestInfo(request.get()));
         }
     }
 
@@ -90,7 +86,6 @@ public class AdminServicesImpl implements AdminServices {
                     User user = post.getCreatedUser();
                     request.get().setAdmin(admin);
                     request.get().setProcessedTime(LocalDateTime.now());
-
                     if (isApproved) {
                         request.get().setRequestStatus(ERequestStatus.APPROVED);
                         request.get().setAction("Xóa bài viết");
@@ -98,22 +93,18 @@ public class AdminServicesImpl implements AdminServices {
 //                        Gửi mail thông báo
                         String content = Email.REMOVE_POST.getContent()
                                 .replace("${username}", request.get().getPost().getCreatedUser().getFullName());
-//                        responseUtils.sendEmail(request.get().getPost().getCreatedUser(), Email.REMOVE_POST.getSubject(), content);
+                        responseUtils.sendEmail(request.get().getPost().getCreatedUser(), Email.REMOVE_POST.getSubject(), content);
                         userRepository.save(user);
                         reportRequestRepository.save(request.get());
-//                        return postServices.deletePost(admin, request.get().getPost().getPostId());
                         return postServices.deletePost(admin, request.get().getPost().getPostId());
-
                     } else {
                         request.get().setRequestStatus(ERequestStatus.REJECTED);
                         request.get().setAction(null);
                         reportRequestRepository.save(request.get());
                         return new MessageResponse("Bạn đã từ chối Report Request này");
-//                        return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Bạn đã từ chối Report Request này"));
                     }
                 } else {
                     return new MessageResponse("Report Request này đã được xử lý");
-//                    return ResponseEntity.status(HttpStatus.OK).body(new MessageResponse("Report Request này đã được xử lý"));
                 }
             }
         }

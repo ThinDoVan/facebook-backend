@@ -18,5 +18,4 @@ public interface UserServices {
     MessageResponse updateUserInfo(User currentUser, UserDto userInfo);
     MessageResponse forgotPassword(String email);
     MessageResponse resetPassword(ResetPasswordRequest resetPasswordRequest);
-    MessageResponse disableAccount(User currentUser);
 }
