@@ -80,11 +80,7 @@ public class FriendServicesImpl implements FriendServices {
         for (FriendRequest result : friendRequestRepository.findFriendRequestsBySender(currentUser)) {
             friendRequestDtoList.add(responseUtils.getFriendRequestInfo(result));
         }
-        try {
-            return responseUtils.pagingList(friendRequestDtoList, page, size);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Quá số lượng trang tối đa");
-        }
+        return responseUtils.pagingList(friendRequestDtoList, page, size);
     }
 
     @Override
@@ -94,11 +90,7 @@ public class FriendServicesImpl implements FriendServices {
         for (FriendRequest result : friendRequestRepository.findFriendRequestsByReceiver(currentUser)) {
             friendRequestDtoList.add(responseUtils.getFriendRequestInfo(result));
         }
-        try {
-            return responseUtils.pagingList(friendRequestDtoList, page, size);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Quá số lượng trang tối đa");
-        }
+        return responseUtils.pagingList(friendRequestDtoList, page, size);
     }
 
     @Override
@@ -144,11 +136,7 @@ public class FriendServicesImpl implements FriendServices {
         for (User result : getFriendList(currentUser)) {
             friendsList.add(responseUtils.getUserInfo(result));
         }
-        try {
-            return responseUtils.pagingList(friendsList, page, size);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Quá số lượng trang tối đa");
-        }
+        return responseUtils.pagingList(friendsList, page, size);
     }
 
     private List<User> getFriendList(User user) {

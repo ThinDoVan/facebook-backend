@@ -51,20 +51,24 @@ public class ResponseUtils {
         mailSender.send(message);
     }
 
-    public <T> Page<T> pagingList(List<T> list, int page, int size) throws IllegalArgumentException{
+    public <T> Page<T> pagingList(List<T> list, int page, int size) throws IllegalArgumentException {
         PageRequest pageRequest = PageRequest.of(page, size);
         int start = (int) pageRequest.getOffset();
         int end = Math.min((start + pageRequest.getPageSize()), list.size());
-        List<T> pageData = list.subList(start, end);
-        return new PageImpl<>(pageData, pageRequest, list.size());
+        if (end >= start) {
+            List<T> pageData = list.subList(start, end);
+            return new PageImpl<>(pageData, pageRequest, list.size());
+        } else {
+            throw new IllegalArgumentException("Vượt quá số trang tối đa");
+        }
     }
 
     public FriendRequestDto getFriendRequestInfo(FriendRequest friendRequest) {
-        return friendRequest!=null?modelMapper.map(friendRequest, FriendRequestDto.class):null;
+        return friendRequest != null ? modelMapper.map(friendRequest, FriendRequestDto.class) : null;
     }
 
     public UserDto getUserInfo(User user) {
-        return user!=null?modelMapper.map(user, UserDto.class):null;
+        return user != null ? modelMapper.map(user, UserDto.class) : null;
     }
 
     public ImageDto getImageInfo(Image image) {
@@ -77,7 +81,7 @@ public class ResponseUtils {
                 image.getImageType());
     }
 
-    public ReportReqDto getReportRequestInfo(ReportRequest reportRequest){
+    public ReportReqDto getReportRequestInfo(ReportRequest reportRequest) {
         return new ReportReqDto(reportRequest.getReportRequestId(),
                 this.getPostInfo(reportRequest.getPost()),
                 this.getUserInfo(reportRequest.getCreatedUser()),
@@ -88,6 +92,7 @@ public class ResponseUtils {
                 reportRequest.getRequestStatus(),
                 reportRequest.getAction());
     }
+
     private CommentVersion getLastCommentVersion(Comment comment) {
         List<CommentVersion> commentVersionList = commentVersionRepository.findByComment(comment);
         CommentVersion lastVersion = new CommentVersion();
@@ -161,13 +166,13 @@ public class ResponseUtils {
 
     public int countComments(Post post) {
         List<Comment> commentList = commentRepository.findByPost(post).stream()
-                .filter((Comment comment)-> !comment.isDeleted()).toList();
+                .filter((Comment comment) -> !comment.isDeleted()).toList();
         return commentList.size();
     }
 
     public int countReply(Comment comment) {
         List<Comment> commentList = commentRepository.findByParentComment(comment).stream()
-                .filter((Comment childComment)-> !childComment.isDeleted()).toList();
+                .filter((Comment childComment) -> !childComment.isDeleted()).toList();
         return commentList.size();
     }
 }

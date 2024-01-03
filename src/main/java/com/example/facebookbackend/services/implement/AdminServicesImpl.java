@@ -79,7 +79,7 @@ public class AdminServicesImpl implements AdminServices {
         } else {
             Optional<ReportRequest> request = reportRequestRepository.findById(reportId);
             if (request.isEmpty()) {
-                throw new DataNotFoundException("Không tìm thấy Report Request có Id "+ reportId);
+                throw new DataNotFoundException("Không tìm thấy Report Request có Id " + reportId);
             } else {
                 if (request.get().getRequestStatus() == ERequestStatus.PENDING) {
                     Post post = request.get().getPost();

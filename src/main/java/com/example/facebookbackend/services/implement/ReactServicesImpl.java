@@ -209,11 +209,7 @@ public class ReactServicesImpl implements ReactServices {
                     for (Comment comment : commentList) {
                         commentDtoList.add(responseUtils.getChildComment(comment));
                     }
-                    try {
-                        return responseUtils.pagingList(commentDtoList, page, size);
-                    } catch (IllegalArgumentException e) {
-                        throw new IllegalArgumentException("Quá số lượng trang tối đa");
-                    }
+                    return responseUtils.pagingList(commentDtoList, page, size);
                 } else {
                     throw new DataNotFoundException("Bài viết vẫn chưa có bình luận");
                 }

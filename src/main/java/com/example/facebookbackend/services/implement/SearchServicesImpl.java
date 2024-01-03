@@ -48,18 +48,14 @@ public class SearchServicesImpl implements SearchServices {
         for (User user : userList) {
             userDtoList.add(responseUtils.getUserInfo(user));
         }
-        try {
-            return responseUtils.pagingList(userDtoList, page, size);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Quá số lượng trang tối đa");
-        }
+        return responseUtils.pagingList(userDtoList, page, size);
     }
 
     //Chưa kiểm tra quyền xem bài viết
     @Override
     public Page<PostDto> searchPost(User currentUser, String keyword, String postedBy, Integer postYear, Integer page, Integer size) {
 
-        List<PostVersion> postVersionList = postVersionRepository.findByContentContains('%'+keyword+'%').stream()
+        List<PostVersion> postVersionList = postVersionRepository.findByContentContains('%' + keyword + '%').stream()
                 .filter(postVersion -> !postVersion.getPost().isDeleted())
                 .filter(postVersion -> accessControlUtils.checkReadPermission(currentUser, postVersion.getPost()))
                 .filter(postVersion -> {
@@ -75,20 +71,16 @@ public class SearchServicesImpl implements SearchServices {
                                 return true;
                             }
                         }
-                    }else {
+                    } else {
                         return true;
                     }
                 })
                 .filter(postVersion -> postYear == null || postYear == postVersion.getPost().getCreatedTime().getYear())
                 .toList();
         List<PostDto> postDtoList = new ArrayList<>();
-        for (PostVersion result:postVersionList) {
+        for (PostVersion result : postVersionList) {
             postDtoList.add(responseUtils.getPostInfo(result.getPost()));
         }
-        try {
-            return responseUtils.pagingList(postDtoList, page, size);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("Quá số lượng trang tối đa");
-        }
+        return responseUtils.pagingList(postDtoList, page, size);
     }
 }

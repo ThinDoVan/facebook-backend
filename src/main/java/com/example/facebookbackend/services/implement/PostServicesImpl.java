@@ -103,11 +103,7 @@ public class PostServicesImpl implements PostServices {
             for (Post post : postList) {
                 postDtoList.add(responseUtils.getPostInfo(post));
             }
-            try {
-                return responseUtils.pagingList(postDtoList, page, size);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Quá số lượng trang tối đa");
-            }
+            return responseUtils.pagingList(postDtoList, page, size);
         }
     }
 

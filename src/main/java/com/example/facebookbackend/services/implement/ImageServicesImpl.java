@@ -36,27 +36,28 @@ public class ImageServicesImpl implements ImageServices {
 
     @Override
     public MessageResponse uploadImage(User currentUser, MultipartFile multipartFile, String imageType) {
+        Map uploadResult;
         try {
-            Map uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(), ObjectUtils.emptyMap());
-            System.out.println(uploadResult);
-            Image image = new Image();
-            image.setUser(currentUser);
-            image.setCreatedTime(LocalDateTime.now());
-            image.setUrl(uploadResult.get("url").toString());
-            image.setFileName(multipartFile.getOriginalFilename());
-            image.setContentType(multipartFile.getContentType());
-            image.setSize(multipartFile.getSize());
-            switch (imageType.toLowerCase()) {
-                case "avatar", "profile picture", "profilepicture", "profile_picture" ->
-                        image.setImageType(EImageType.PROFILE_PICTURE);
-                case "cover photo", "coverphoto", "cover_photo" -> image.setImageType(EImageType.COVER_PHOTO);
-                default -> image.setImageType(EImageType.POST_PHOTO);
-            }
-            imageRepository.save(image);
-            return new MessageResponse("Tải ảnh thành công");
+            uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(), ObjectUtils.emptyMap());
         } catch (IOException e) {
-            return new MessageResponse("Tải ảnh thất bại");
+            throw new RuntimeException("Tải ảnh thất bại");
         }
+        Image image = new Image();
+        image.setUser(currentUser);
+        image.setCreatedTime(LocalDateTime.now());
+        image.setUrl(uploadResult.get("url").toString());
+        image.setFileName(multipartFile.getOriginalFilename());
+        image.setContentType(multipartFile.getContentType());
+        image.setSize(multipartFile.getSize());
+        switch (imageType.toLowerCase()) {
+            case "avatar", "profile picture", "profilepicture", "profile_picture" ->
+                    image.setImageType(EImageType.PROFILE_PICTURE);
+            case "cover photo", "coverphoto", "cover_photo" -> image.setImageType(EImageType.COVER_PHOTO);
+            default -> image.setImageType(EImageType.POST_PHOTO);
+        }
+        imageRepository.save(image);
+        return new MessageResponse("Tải ảnh thành công");
+
     }
 
     @Override
@@ -81,11 +82,7 @@ public class ImageServicesImpl implements ImageServices {
                 imageDtoList.add(responseUtils.getImageInfo(result));
             }
             imageDtoList = imageDtoList.stream().sorted(Comparator.comparing(ImageDto::getImageType)).collect(Collectors.toList());
-            try {
-                return responseUtils.pagingList(imageDtoList, page, size);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException("Quá số lượng trang tối đa");
-            }
+            return responseUtils.pagingList(imageDtoList, page, size);
         }
     }
 

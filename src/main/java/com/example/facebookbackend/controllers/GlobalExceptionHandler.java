@@ -11,12 +11,13 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.security.cert.CertificateExpiredException;
+import java.io.IOException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler({InvalidDataException.class,
-            IllegalArgumentException.class})
+            IllegalArgumentException.class
+    })
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
     public MessageResponse handleInvalidDataException(RuntimeException ex) {
@@ -44,4 +45,12 @@ public class GlobalExceptionHandler {
         return errorResponse;
     }
 
+    @ExceptionHandler(IOException.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ResponseBody
+    public MessageResponse handleIOException(RuntimeException ex){
+        MessageResponse errorResponse = new MessageResponse();
+        errorResponse.setMessage(ex.getMessage());
+        return errorResponse;
+    }
 }
