@@ -2,6 +2,8 @@ package com.example.facebookbackend.controllers;
 
 import com.example.facebookbackend.dtos.request.LoginRequest;
 import com.example.facebookbackend.dtos.request.RegisterRequest;
+import com.example.facebookbackend.dtos.request.ResetPasswordRequest;
+import com.example.facebookbackend.dtos.response.JwtResponse;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.services.UserServices;
 import jakarta.validation.Valid;
@@ -18,12 +20,27 @@ public class AuthControllers {
 
     @PostMapping(path = "/Register")
     public ResponseEntity<MessageResponse> registerAccount(@Valid @RequestBody RegisterRequest registerRequest){
-        return userServices.registerAccount(registerRequest);
+        return ResponseEntity.ok(userServices.registerAccount(registerRequest));
+    }
+    @PostMapping(path = "/ActiveAccount")
+    public ResponseEntity<MessageResponse> activeAccount(@RequestParam String verificationCode){
+        return ResponseEntity.ok(userServices.activeAccount(verificationCode));
+    }
+    @PostMapping(path = "/Login")
+    public ResponseEntity<JwtResponse> loginAccount(@Valid @RequestBody LoginRequest loginRequest){
+        JwtResponse response = userServices.loginAccount(loginRequest);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping(path = "/Login")
-    public ResponseEntity<?> loginAccount(@Valid @RequestBody LoginRequest loginRequest){
-        return userServices.loginAccount(loginRequest);
+    @PostMapping(path = "/ForgetPassword")
+    public ResponseEntity<MessageResponse> getResetPasswordToken(@RequestParam String userEmail){
+        return ResponseEntity.ok(userServices.forgotPassword(userEmail));
     }
+
+    @PostMapping(path = "/ResetPassword")
+    public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest){
+        return ResponseEntity.ok(userServices.resetPassword(resetPasswordRequest));
+    }
+
 
 }

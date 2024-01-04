@@ -14,7 +14,7 @@ public class CommentDto {
     private String content;
     private LocalDateTime createdTime;
     private int countLikes;
-    private int countComments;
+    private int countReply;
     private CommentDto parrentComment;
     private List<CommentDto> childComment;
 }

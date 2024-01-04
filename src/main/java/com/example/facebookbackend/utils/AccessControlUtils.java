@@ -32,6 +32,8 @@ public class AccessControlUtils {
         return user.equals(author);
     }
 
+
+
     public boolean checkEditPermission(User user, User author) {
         return isAuthor(user, author);
     }

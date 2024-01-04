@@ -31,12 +31,18 @@ public class User {
 
     private boolean enable;
 
+    //Thời gian vô hiệu hóa
+    private LocalDateTime lockUntil;
+
     private LocalDateTime createdTime;
+    private String address;
+    private String city;
+    private String school;
+    private String company;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",
             joinColumns = {@JoinColumn(name = "userId")},
             inverseJoinColumns = {@JoinColumn(name = "roleId")})
     private Set<Role> roleSet;
-
 }

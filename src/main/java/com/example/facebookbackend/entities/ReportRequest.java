@@ -1,8 +1,11 @@
 package com.example.facebookbackend.entities;
 
+import com.example.facebookbackend.enums.ERequestStatus;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "reportRequest")
@@ -20,18 +23,16 @@ public class ReportRequest {
     @ManyToOne
     @JoinColumn(name = "userId")
     @JsonIgnoreProperties
-    private User user;
-
+    private User createdUser;
+    private LocalDateTime createdTime;
     private String reason;
-
-    @ManyToOne
-    @JoinColumn(name = "reportStatusId")
-    @JsonIgnoreProperties
-    private ReportStatus reportStatus;
 
     @ManyToOne
     @JoinColumn(name = "adminId")
     @JsonIgnoreProperties
     private User admin;
-
+    private LocalDateTime processedTime;
+    @Enumerated(EnumType.STRING)
+    private ERequestStatus requestStatus;
+    private String action;
 }
