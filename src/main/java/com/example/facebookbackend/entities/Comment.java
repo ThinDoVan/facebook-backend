@@ -43,6 +43,8 @@ public class Comment {
     @JsonIgnoreProperties
     private Comment parentComment;
 
+    private int countLike=0;
+
     public Comment(Post post, User createdUser, LocalDateTime createdTime, Comment parentComment) {
         this.post = post;
         this.createdUser = createdUser;

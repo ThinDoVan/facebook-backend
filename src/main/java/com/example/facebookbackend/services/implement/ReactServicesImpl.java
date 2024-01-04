@@ -65,8 +65,10 @@ public class ReactServicesImpl implements ReactServices {
                     likePost.setUser(currentUser);
                     likePost.setCreatedTime(LocalDateTime.now());
                     likePostRepository.save(likePost);
-                    return new MessageResponse("Bạn đã thích bài viết");
 
+                    post.get().setCountLike(post.get().getCountLike()+1);
+                    postRepository.save(post.get());
+                    return new MessageResponse("Bạn đã thích bài viết");
                 }
             }
         }
@@ -88,12 +90,16 @@ public class ReactServicesImpl implements ReactServices {
                             currentUser,
                             LocalDateTime.now(),
                             null);
+//                    comment.setCountLike(0);
                     commentRepository.save(comment);
-
+//                    System.out.println("!!!!!!"+post.get().getCountComment());
                     CommentVersion commentVersion = new CommentVersion(comment,
                             commentRequest.getContent(),
                             comment.getCreatedTime());
                     commentVersionRepository.save(commentVersion);
+
+                    post.get().setCountComment(post.get().getCountComment()+1);
+                    postRepository.save(post.get());
                     return new MessageResponse("Bạn đã bình luận bài viết");
                 }
             }
@@ -117,6 +123,9 @@ public class ReactServicesImpl implements ReactServices {
                     likeComment.setUser(currentUser);
                     likeComment.setCreatedTime(LocalDateTime.now());
                     likeCommentRepository.save(likeComment);
+
+                    comment.get().setCountLike(comment.get().getCountLike()+1);
+                    commentRepository.save(comment.get());
                     return new MessageResponse("Bạn đã thích bình luận");
                 }
             }
@@ -129,7 +138,8 @@ public class ReactServicesImpl implements ReactServices {
         if (parentComment.isEmpty() || parentComment.get().isDeleted()) {
             throw new DataNotFoundException("Không tìm thấy bình luận có Id: " + commentRequest.getRepliedItemId() + " hoặc bình luận đã bị xóa");
         } else {
-            if (!accessControlUtils.checkReadPermission(currentUser, parentComment.get().getPost())) {
+            Post post = parentComment.get().getPost();
+            if (!accessControlUtils.checkReadPermission(currentUser, post)) {
                 throw new NotAllowedException("Bạn không có quyền trả lời bình luận này");
             } else {
                 if (commentRequest.getContent() == null || commentRequest.getContent().isEmpty()) {
@@ -146,6 +156,8 @@ public class ReactServicesImpl implements ReactServices {
                             comment.getCreatedTime());
                     commentVersionRepository.save(commentVersion);
 
+                    post.setCountComment(post.getCountComment()+1);
+                    postRepository.save(post);
                     return new MessageResponse("Bạn đã trả lời bình luận");
                 }
             }
@@ -186,6 +198,10 @@ public class ReactServicesImpl implements ReactServices {
                 comment.get().setDeletedTime(LocalDateTime.now());
                 comment.get().setDeletedUser(currentUser);
                 commentRepository.save(comment.get());
+
+                Post post = comment.get().getPost();
+                post.setCountComment(post.getCountComment()-1);
+                postRepository.save(post);
                 return new MessageResponse("Xóa bình luận thành công");
             } else {
                 throw new NotAllowedException("Bạn không có quyền xóa bình luận này");
@@ -215,31 +231,6 @@ public class ReactServicesImpl implements ReactServices {
                 }
             } else {
                 throw new NotAllowedException("Bạn không có quyền xem bình luận");
-            }
-        }
-    }
-
-    @Override
-    public MessageResponse reportPost(User currentUser, ReportRequestDto reportRequestDto) {
-        Optional<Post> post = postRepository.findById(reportRequestDto.getId());
-        if (post.isEmpty() || post.get().isDeleted()) {
-            throw new DataNotFoundException("Không tìm thấy bài viết có id: " + reportRequestDto.getId() + " hoặc bài viết đã bị xóa");
-        } else {
-            if (accessControlUtils.checkReadPermission(currentUser, post.get())) {
-                if (reportRequestRepository.findByPostAndCreatedUser(post.get(), currentUser).isPresent()) {
-                    return new MessageResponse("Bạn đã gửi báo cáo về bài viết này trước đây");
-                } else {
-                    ReportRequest request = new ReportRequest();
-                    request.setPost(post.get());
-                    request.setReason(reportRequestDto.getReason());
-                    request.setCreatedUser(currentUser);
-                    request.setCreatedTime(LocalDateTime.now());
-                    request.setRequestStatus(ERequestStatus.PENDING);
-                    reportRequestRepository.save(request);
-                    return new MessageResponse("Cảm ơn bạn đã gửi báo cáo bài viết. Chúng tôi sẽ xem xét và xử lý trường hợp này");
-                }
-            } else {
-                throw new NotAllowedException("Bạn không có quyền xem bài viết");
             }
         }
     }

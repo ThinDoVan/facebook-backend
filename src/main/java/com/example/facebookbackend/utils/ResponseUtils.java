@@ -20,8 +20,6 @@ public class ResponseUtils {
     private final PostVersionRepository postVersionRepository;
     private final CommentVersionRepository commentVersionRepository;
     private final CommentRepository commentRepository;
-    private final LikePostRepository likePostRepository;
-    private final LikeCommentRepository likeCommentRepository;
     private final ModelMapper modelMapper;
     private final MailSender mailSender;
 
@@ -29,16 +27,11 @@ public class ResponseUtils {
     public ResponseUtils(PostVersionRepository postVersionRepository,
                          CommentVersionRepository commentVersionRepository,
                          CommentRepository commentRepository,
-                         LikePostRepository likePostRepository,
-                         LikeCommentRepository likeCommentRepository,
                          ModelMapper modelMapper,
-                         MailSender mailSender
-    ) {
+                         MailSender mailSender) {
         this.postVersionRepository = postVersionRepository;
         this.commentVersionRepository = commentVersionRepository;
         this.commentRepository = commentRepository;
-        this.likePostRepository = likePostRepository;
-        this.likeCommentRepository = likeCommentRepository;
         this.modelMapper = modelMapper;
         this.mailSender = mailSender;
     }
@@ -114,8 +107,8 @@ public class ResponseUtils {
         postDto.setCreatedUser(this.getUserInfo(post.getCreatedUser()));
         postDto.setCreatedDate(post.getCreatedTime());
         postDto.setAudience(post.getAudience().getAudienceType());
-        postDto.setCountLike(countLike(post));
-        postDto.setCountComment(countComments(post));
+        postDto.setCountLike(post.getCountLike());
+        postDto.setCountComment(post.getCountComment());
         return postDto;
     }
 
@@ -126,13 +119,13 @@ public class ResponseUtils {
         commentDto.setCreatedUser(this.getUserInfo(comment.getCreatedUser()));
         commentDto.setContent(lastVersion.getContent());
         commentDto.setCreatedTime(lastVersion.getModifiedTime());
-        commentDto.setCountLikes(countLike(comment));
-        commentDto.setCountReply(countReply(comment));
-        if (comment.getParentComment() != null) {
-            commentDto.setParrentComment(getParrentComment(comment.getParentComment()));
-        } else {
-            commentDto.setParrentComment(null);
-        }
+        commentDto.setCountLikes(comment.getCountLike());
+//        commentDto.setCountReply(comment.getCountComment());
+//        if (comment.getParentComment() != null) {
+//            commentDto.setParrentComment(getParrentComment(comment.getParentComment()));
+//        } else {
+//            commentDto.setParrentComment(null);
+//        }
         return commentDto;
     }
 
@@ -143,8 +136,7 @@ public class ResponseUtils {
         commentDto.setCreatedUser(this.getUserInfo(comment.getCreatedUser()));
         commentDto.setContent(lastVersion.getContent());
         commentDto.setCreatedTime(lastVersion.getModifiedTime());
-        commentDto.setCountLikes(countLike(comment));
-        commentDto.setCountReply(countReply(comment));
+        commentDto.setCountLikes(comment.getCountLike());
         List<Comment> commentList = commentRepository.findByParentComment(comment);
         List<CommentDto> childCommentList = new ArrayList<>();
         if (!commentList.isEmpty()) {
@@ -155,24 +147,24 @@ public class ResponseUtils {
         commentDto.setChildComment(childCommentList);
         return commentDto;
     }
-
-    public int countLike(Post post) {
-        return likePostRepository.findByPost(post).size();
-    }
-
-    public int countLike(Comment comment) {
-        return likeCommentRepository.findByComment(comment).size();
-    }
-
-    public int countComments(Post post) {
-        List<Comment> commentList = commentRepository.findByPost(post).stream()
-                .filter((Comment comment) -> !comment.isDeleted()).toList();
-        return commentList.size();
-    }
-
-    public int countReply(Comment comment) {
-        List<Comment> commentList = commentRepository.findByParentComment(comment).stream()
-                .filter((Comment childComment) -> !childComment.isDeleted()).toList();
-        return commentList.size();
-    }
+//
+//    public int countLike(Post post) {
+//        return likePostRepository.findByPost(post).size();
+//    }
+//
+//    public int countLike(Comment comment) {
+//        return likeCommentRepository.findByComment(comment).size();
+//    }
+//
+//    public int countComments(Post post) {
+//        List<Comment> commentList = commentRepository.findByPost(post).stream()
+//                .filter((Comment comment) -> !comment.isDeleted()).toList();
+//        return commentList.size();
+//    }
+//
+//    public int countReply(Comment comment) {
+//        List<Comment> commentList = commentRepository.findByParentComment(comment).stream()
+//                .filter((Comment childComment) -> !childComment.isDeleted()).toList();
+//        return commentList.size();
+//    }
 }

@@ -35,5 +35,7 @@ public class Post {
     @JsonBackReference
     private Audience audience;
 
-
+    private int countLike=0;
+    private int countComment=0;
+    private int countReported=0;
 }

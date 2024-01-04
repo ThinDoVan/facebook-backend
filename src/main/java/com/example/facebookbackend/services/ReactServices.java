@@ -15,5 +15,5 @@ public interface ReactServices {
     MessageResponse updateComment(User currentUser, CommentRequest commentRequest);
     MessageResponse deleteComment(User currentUser, Integer commentId);
     Page<CommentDto> getPostComments(User currentUser, Integer postId, Integer page, Integer size);
-    MessageResponse reportPost(User currentUser, ReportRequestDto reportRequestDto);
+
 }
