@@ -8,6 +8,7 @@ import com.example.facebookbackend.entities.Image;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.EImageType;
 import com.example.facebookbackend.exceptions.DataNotFoundException;
+import com.example.facebookbackend.exceptions.InvalidDataException;
 import com.example.facebookbackend.repositories.ImageRepository;
 import com.example.facebookbackend.repositories.UserRepository;
 import com.example.facebookbackend.services.ImageServices;
@@ -36,12 +37,21 @@ public class ImageServicesImpl implements ImageServices {
 
     @Override
     public MessageResponse uploadImage(User currentUser, MultipartFile multipartFile, String imageType) {
+        if (multipartFile.isEmpty()){
+            throw new InvalidDataException("File upload trống");
+        }
+        System.out.println(multipartFile.getContentType());
+
+        if (!multipartFile.getContentType().startsWith("image/")){
+            throw new InvalidDataException("Chỉ được upload file image");
+        }
         Map uploadResult;
         try {
             uploadResult = cloudinary.uploader().upload(multipartFile.getBytes(), ObjectUtils.emptyMap());
         } catch (IOException e) {
             throw new RuntimeException("Tải ảnh thất bại");
         }
+        System.out.println(uploadResult);
         Image image = new Image();
         image.setUser(currentUser);
         image.setCreatedTime(LocalDateTime.now());
@@ -49,6 +59,9 @@ public class ImageServicesImpl implements ImageServices {
         image.setFileName(multipartFile.getOriginalFilename());
         image.setContentType(multipartFile.getContentType());
         image.setSize(multipartFile.getSize());
+        image.setHeight(Integer.parseInt(uploadResult.get("height").toString()));
+        image.setWidth(Integer.parseInt(uploadResult.get("width").toString()));
+        image.setFormat(uploadResult.get("format").toString());
         switch (imageType.toLowerCase()) {
             case "avatar", "profile picture", "profilepicture", "profile_picture" ->
                     image.setImageType(EImageType.PROFILE_PICTURE);

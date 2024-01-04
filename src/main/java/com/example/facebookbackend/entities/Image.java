@@ -23,6 +23,9 @@ public class Image {
     private String contentType;
     private String url;
     private long size;
+    private int width;
+    private int height;
+    private String format;
     @Enumerated(EnumType.STRING)
     private EImageType imageType;
 }
