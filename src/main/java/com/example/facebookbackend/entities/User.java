@@ -17,7 +17,7 @@ uniqueConstraints = {
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int userId;
+    private Integer userId;
 
     private String fullName;
 
@@ -39,7 +39,7 @@ public class User {
     private String city;
     private String school;
     private String company;
-
+    private int violationCount=0;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_role",
             joinColumns = {@JoinColumn(name = "userId")},

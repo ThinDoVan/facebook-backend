@@ -76,7 +76,8 @@ public class ResponseUtils {
 
     public ReportReqDto getReportRequestInfo(ReportRequest reportRequest) {
         return new ReportReqDto(reportRequest.getReportRequestId(),
-                this.getPostInfo(reportRequest.getPost()),
+                reportRequest.getPost()!=null?this.getPostInfo(reportRequest.getPost()):null,
+                reportRequest.getUser()!=null?this.getUserInfo(reportRequest.getUser()):null,
                 this.getUserInfo(reportRequest.getCreatedUser()),
                 reportRequest.getCreatedTime(),
                 reportRequest.getReason(),

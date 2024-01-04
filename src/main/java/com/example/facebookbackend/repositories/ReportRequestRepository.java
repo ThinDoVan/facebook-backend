@@ -13,4 +13,5 @@ import java.util.Optional;
 public interface ReportRequestRepository extends JpaRepository<ReportRequest, Integer> {
     List<ReportRequest> findByPost(Post post);
     Optional<ReportRequest> findByPostAndCreatedUser(Post post, User createdUser);
+    Optional<ReportRequest> findByUserAndCreatedUser(User user, User createdUser);
 }

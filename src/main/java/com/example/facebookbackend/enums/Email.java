@@ -12,17 +12,18 @@ public enum Email {
                     Chúng tôi đã nhận được thông tin đăng ký tài khoản Tào Lao Social Network của bạn vào lúc ${time}.
                     Mã kích hoạt tài khoản của bạn là ${code}. Mã này có hiệu lực trong 5 phút.
                     Trân trọng!"""),
-    DISABLE_ACCOUNT("Thông báo Khóa tài khoản",
+    LOCK_ACCOUNT("Thông báo Khóa tài khoản",
             """
                     Xin chào ${username},
-                    Tài khoản của bạn đã vi phạm tiêu chuẩn cộng đồng của Tào Lao Social Network 3 lần.
-                    Chúng tôi quyết định khóa tài khoản của bạn
+                    Tài khoản của bạn đã ${reason}.
+                    Chúng tôi quyết định ${action}.
                     Trân trọng!"""),
-    REMOVE_POST("Thông báo Gỡ bài viết",
+    REMOVE_POST("Thông báo Bài viết vi phạm",
             """
                     Xin chào ${username},
-                    Bài viết của bạn đã vi phạm tiêu chuẩn cộng đồng của Tào Lao Social Network. Chúng tôi quyết định gỡ bài viết này của bạn.
-                    Ngoài ra, tài khoản của bạn sẽ bị tạm khóa trong vòng 24h tính từ thời điểm hiện tại
+                    Bài viết của bạn đã vi phạm tiêu chuẩn cộng đồng của Tào Lao Social Network.
+                    Đây là lần vi phạm thứ ${violationCount}. Nếu bạn vi phạm lần thứ 3, chúng tôi sẽ tạm khóa tài khooản của bạn trong vòng 24h
+                    Chúng tôi quyết định ${action}.
                     Trân trọng!"""),
     CHANGE_PASSWORD("Mã xác nhận Thay đổi mật khẩu",
             """

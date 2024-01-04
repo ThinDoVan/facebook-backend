@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 public class ReportReqDto {
     private int reportId;
     private PostDto post;
+    private UserDto user;
     private UserDto createdUser;
     private LocalDateTime createdTime;
     private String reason;

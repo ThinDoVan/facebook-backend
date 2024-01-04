@@ -7,6 +7,7 @@ import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.securities.services.UserDetailsImpl;
 import com.example.facebookbackend.services.ReactServices;
+import com.example.facebookbackend.services.ReportServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 public class ReactControllers {
     @Autowired
     private ReactServices reactServices;
+    @Autowired
+    ReportServices reportServices;
 
     @PostMapping(path = "/LikePost")
     public ResponseEntity<MessageResponse> likePost(@AuthenticationPrincipal UserDetails userDetails,
@@ -74,10 +77,5 @@ public class ReactControllers {
     }
 
 
-    @PostMapping(path = "/ReportPost")
-    public ResponseEntity<MessageResponse> reportPost(@AuthenticationPrincipal UserDetails userDetails,
-                                                      @RequestBody ReportRequestDto reportRequestDto) {
-        User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return ResponseEntity.ok(reactServices.reportPost(currentUser, reportRequestDto));
-    }
+
 }
