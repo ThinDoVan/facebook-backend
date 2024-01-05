@@ -18,6 +18,7 @@ import java.util.List;
 @Component
 public class ResponseUtils {
     private final PostVersionRepository postVersionRepository;
+    private final ImageRepository imageRepository;
     private final CommentVersionRepository commentVersionRepository;
     private final CommentRepository commentRepository;
     private final ModelMapper modelMapper;
@@ -25,11 +26,13 @@ public class ResponseUtils {
 
     @Autowired
     public ResponseUtils(PostVersionRepository postVersionRepository,
+                         ImageRepository imageRepository,
                          CommentVersionRepository commentVersionRepository,
                          CommentRepository commentRepository,
                          ModelMapper modelMapper,
                          MailSender mailSender) {
         this.postVersionRepository = postVersionRepository;
+        this.imageRepository = imageRepository;
         this.commentVersionRepository = commentVersionRepository;
         this.commentRepository = commentRepository;
         this.modelMapper = modelMapper;
@@ -76,8 +79,8 @@ public class ResponseUtils {
 
     public ReportReqDto getReportRequestInfo(ReportRequest reportRequest) {
         return new ReportReqDto(reportRequest.getReportRequestId(),
-                reportRequest.getPost()!=null?this.getPostInfo(reportRequest.getPost()):null,
-                reportRequest.getUser()!=null?this.getUserInfo(reportRequest.getUser()):null,
+                reportRequest.getPost() != null ? this.getPostInfo(reportRequest.getPost()) : null,
+                reportRequest.getUser() != null ? this.getUserInfo(reportRequest.getUser()) : null,
                 this.getUserInfo(reportRequest.getCreatedUser()),
                 reportRequest.getCreatedTime(),
                 reportRequest.getReason(),
@@ -102,7 +105,12 @@ public class ResponseUtils {
         for (PostVersion version : postVersionList) {
             lastVersion = version;
         }
+        List<ImageDto> imageDtoList = new ArrayList<>();
+        for (Image image : imageRepository.findByPostVersion(lastVersion)) {
+            imageDtoList.add(this.getImageInfo(image));
+        }
         PostDto postDto = new PostDto();
+        postDto.setImageDtoList(imageDtoList);
         postDto.setPostId(post.getPostId());
         postDto.setContent(lastVersion.getContent());
         postDto.setCreatedUser(this.getUserInfo(post.getCreatedUser()));

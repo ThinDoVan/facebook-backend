@@ -12,12 +12,14 @@ import com.example.facebookbackend.exceptions.DataNotFoundException;
 import com.example.facebookbackend.exceptions.InvalidDataException;
 import com.example.facebookbackend.exceptions.NotAllowedException;
 import com.example.facebookbackend.repositories.*;
+import com.example.facebookbackend.services.ImageServices;
 import com.example.facebookbackend.services.PostServices;
 import com.example.facebookbackend.utils.AccessControlUtils;
 import com.example.facebookbackend.utils.ResponseUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -40,6 +42,9 @@ public class PostServicesImpl implements PostServices {
     RoleRepository roleRepository;
     @Autowired
     FriendshipRepository friendshipRepository;
+
+    @Autowired
+    ImageServices imageServices;
 
     @Autowired
     AccessControlUtils accessControlUtils;
@@ -65,11 +70,15 @@ public class PostServicesImpl implements PostServices {
         }
         postRepository.save(post);
 
+
         PostVersion postVersion = new PostVersion(post,
                 postRequest.getContent(),
                 post.getCreatedTime());
         postVersionRepository.save(postVersion);
 
+        for (MultipartFile file : postRequest.getMultipartFileList()) {
+            imageServices.uploadImage(currentUser,file, "post photo", postVersion);
+        }
         return new MessageResponse("Tạo bài viết thành công");
     }
 

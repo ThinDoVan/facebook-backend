@@ -28,4 +28,7 @@ public class Image {
     private String format;
     @Enumerated(EnumType.STRING)
     private EImageType imageType;
+    @ManyToOne
+    @JoinColumn(name = "postId")
+    private PostVersion postVersion;
 }

@@ -5,6 +5,7 @@ import com.cloudinary.utils.ObjectUtils;
 import com.example.facebookbackend.dtos.response.ImageDto;
 import com.example.facebookbackend.dtos.response.MessageResponse;
 import com.example.facebookbackend.entities.Image;
+import com.example.facebookbackend.entities.PostVersion;
 import com.example.facebookbackend.entities.User;
 import com.example.facebookbackend.enums.EImageType;
 import com.example.facebookbackend.exceptions.DataNotFoundException;
@@ -36,13 +37,13 @@ public class ImageServicesImpl implements ImageServices {
     Cloudinary cloudinary;
 
     @Override
-    public MessageResponse uploadImage(User currentUser, MultipartFile multipartFile, String imageType) {
+    public MessageResponse uploadImage(User currentUser, MultipartFile multipartFile, String imageType, PostVersion postVersion) {
         if (multipartFile.isEmpty()){
             throw new InvalidDataException("File upload trống");
         }
         System.out.println(multipartFile.getContentType());
 
-        if (!multipartFile.getContentType().startsWith("image/")){
+        if (!Objects.requireNonNull(multipartFile.getContentType()).startsWith("image/")){
             throw new InvalidDataException("Chỉ được upload file image");
         }
         Map uploadResult;
@@ -51,6 +52,7 @@ public class ImageServicesImpl implements ImageServices {
         } catch (IOException e) {
             throw new RuntimeException("Tải ảnh thất bại");
         }
+
         System.out.println(uploadResult);
         Image image = new Image();
         image.setUser(currentUser);
@@ -66,11 +68,14 @@ public class ImageServicesImpl implements ImageServices {
             case "avatar", "profile picture", "profilepicture", "profile_picture" ->
                     image.setImageType(EImageType.PROFILE_PICTURE);
             case "cover photo", "coverphoto", "cover_photo" -> image.setImageType(EImageType.COVER_PHOTO);
-            default -> image.setImageType(EImageType.POST_PHOTO);
+            case "post photo", "postphoto", "post_photo"-> {
+                image.setImageType(EImageType.POST_PHOTO);
+                image.setPostVersion(postVersion);
+            }
+            default -> throw new InvalidDataException("Không có image type "+imageType+". Hãy chọn profile picture, cover photo hoặc post photo");
         }
         imageRepository.save(image);
         return new MessageResponse("Tải ảnh thành công");
-
     }
 
     @Override

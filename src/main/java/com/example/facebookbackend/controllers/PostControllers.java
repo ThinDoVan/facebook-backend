@@ -22,7 +22,7 @@ public class PostControllers {
 
     @PostMapping(path = "/CreatePost")
     public ResponseEntity<MessageResponse> createPost(@AuthenticationPrincipal UserDetails userDetails,
-                                                      @RequestBody PostRequest postRequest) {
+                                                      @ModelAttribute PostRequest postRequest) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
         return ResponseEntity.ok(postServices.createPost(currentUser, postRequest));
     }

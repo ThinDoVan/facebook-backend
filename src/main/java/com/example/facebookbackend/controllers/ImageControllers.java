@@ -25,7 +25,7 @@ public class ImageControllers {
                                                          @RequestParam MultipartFile file,
                                                          @RequestParam String imageType) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return ResponseEntity.ok(imageServices.uploadImage(currentUser, file, imageType));
+        return ResponseEntity.ok(imageServices.uploadImage(currentUser, file, imageType, null));
     }
 
     @GetMapping(path = "/GetImageInfo")
