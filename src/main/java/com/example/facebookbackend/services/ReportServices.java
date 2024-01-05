@@ -11,9 +11,15 @@ public interface ReportServices {
 
     MessageResponse reportUser(User currentUser, ReportRequestDto reportRequestDto);
 
-    Page<ReportReqDto> getListReport(Integer postId, Integer userId, String requestStatus, Integer page, Integer size);
+    Page<ReportReqDto> getListReportUserRequest(Integer userId, String requestStatus, Integer page, Integer size);
+    Page<ReportReqDto> getListReportPostRequest(Integer postId, String requestStatus, Integer page, Integer size);
 
-    ReportReqDto getReportRequest(Integer reportId);
 
-    MessageResponse handleReport(User admin, Integer reportId, Boolean isApproved);
+    //    ReportReqDto getReportRequest(Integer reportId);
+    ReportReqDto getReportUserRequest(Integer reportId);
+    ReportReqDto getReportPostRequest(Integer reportId);
+
+    MessageResponse handleReportUser(User admin, Integer reportId, Boolean isApproved);
+    MessageResponse handleReportPost();
+
 }

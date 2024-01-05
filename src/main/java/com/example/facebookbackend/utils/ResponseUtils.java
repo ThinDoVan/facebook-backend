@@ -77,17 +77,39 @@ public class ResponseUtils {
                 image.getImageType());
     }
 
-    public ReportReqDto getReportRequestInfo(ReportRequest reportRequest) {
-        return new ReportReqDto(reportRequest.getReportRequestId(),
-                reportRequest.getPost() != null ? this.getPostInfo(reportRequest.getPost()) : null,
-                reportRequest.getUser() != null ? this.getUserInfo(reportRequest.getUser()) : null,
-                this.getUserInfo(reportRequest.getCreatedUser()),
-                reportRequest.getCreatedTime(),
-                reportRequest.getReason(),
-                this.getUserInfo(reportRequest.getAdmin()),
-                reportRequest.getProcessedTime(),
-                reportRequest.getRequestStatus(),
-                reportRequest.getAction());
+//    public ReportReqDto getReportRequestInfo(ReportRequest reportRequest) {
+//        return new ReportReqDto(reportRequest.getReportRequestId(),
+//                reportRequest.getPost() != null ? this.getPostInfo(reportRequest.getPost()) : null,
+//                reportRequest.getUser() != null ? this.getUserInfo(reportRequest.getUser()) : null,
+//                this.getUserInfo(reportRequest.getCreatedUser()),
+//                reportRequest.getCreatedTime(),
+//                reportRequest.getReason(),
+//                this.getUserInfo(reportRequest.getAdmin()),
+//                reportRequest.getProcessedTime(),
+//                reportRequest.getRequestStatus(),
+//                reportRequest.getAction());
+//    }
+    public ReportReqDto getReportUserInfo(ReportUser reportUser){
+        return new ReportReqDto(reportUser.getReportRequestId(),
+                this.getUserInfo(reportUser.getUser()),
+                this.getUserInfo(reportUser.getCreatedUser()),
+                reportUser.getCreatedTime(),
+                reportUser.getReason(),
+                this.getUserInfo(reportUser.getAdmin()),
+                reportUser.getProcessedTime(),
+                reportUser.getRequestStatus(),
+                reportUser.getAction());
+    }
+    public ReportReqDto getReportPostInfo(ReportPost reportPost){
+        return new ReportReqDto(reportPost.getReportRequestId(),
+                this.getPostInfo(reportPost.getPost()),
+                this.getUserInfo(reportPost.getCreatedUser()),
+                reportPost.getCreatedTime(),
+                reportPost.getReason(),
+                this.getUserInfo(reportPost.getAdmin()),
+                reportPost.getProcessedTime(),
+                reportPost.getRequestStatus(),
+                reportPost.getAction());
     }
 
     private CommentVersion getLastCommentVersion(Comment comment) {

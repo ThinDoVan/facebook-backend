@@ -29,7 +29,7 @@ public class ReportControllers {
             @RequestParam(required = false) String reportStatus,
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "5") Integer size) {
-        Page<ReportReqDto> result = reportServices.getListReport(postId,null, reportStatus, page, size);
+        Page<ReportReqDto> result = reportServices.getListReportPostRequest(postId, reportStatus, page, size);
         return ResponseEntity.ok(result);
     }
     @GetMapping(path = "/GetListUserReport")
@@ -39,14 +39,20 @@ public class ReportControllers {
             @RequestParam(required = false) String reportStatus,
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @RequestParam(required = false, defaultValue = "5") Integer size) {
-        Page<ReportReqDto> result = reportServices.getListReport(null,userId, reportStatus, page, size);
+        Page<ReportReqDto> result = reportServices.getListReportUserRequest(userId, reportStatus, page, size);
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping(path = "/GetReport")
+    @GetMapping(path = "/GetReportUser")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<?> getListReport(@RequestParam Integer reportId) {
-        ReportReqDto result = reportServices.getReportRequest(reportId);
+    public ResponseEntity<?> getReportUser(@RequestParam Integer reportId) {
+        ReportReqDto result = reportServices.getReportUserRequest(reportId);
+        return ResponseEntity.ok(result);
+    }
+    @GetMapping(path = "/GetReportPost")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<?> getReportPost(@RequestParam Integer reportId) {
+        ReportReqDto result = reportServices.getReportPostRequest(reportId);
         return ResponseEntity.ok(result);
     }
 
@@ -56,7 +62,7 @@ public class ReportControllers {
                                             @RequestParam Integer reportId,
                                             @RequestParam Boolean isApproved) {
         User currentUser = ((UserDetailsImpl) userDetails).getUser();
-        return ResponseEntity.ok(reportServices.handleReport(currentUser, reportId, isApproved));
+        return ResponseEntity.ok(reportServices.handleReportUser(currentUser, reportId, isApproved));
     }
     @PreAuthorize("hasRole('ROLE_USER')")
     @PostMapping(path = "/ReportPost")

@@ -13,6 +13,8 @@ import java.util.List;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Integer> {
     List<Post> findAllByCreatedUser(User authorUser);
+
     List<Post> findAllByCreatedUserAndAudience(User authorUser, Audience eAudience);
 
+    List<Post> findAllByCountReportedGreaterThanEqual(int number);
 }

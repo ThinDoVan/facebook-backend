@@ -75,9 +75,10 @@ public class PostServicesImpl implements PostServices {
                 postRequest.getContent(),
                 post.getCreatedTime());
         postVersionRepository.save(postVersion);
-
-        for (MultipartFile file : postRequest.getMultipartFileList()) {
-            imageServices.uploadImage(currentUser,file, "post photo", postVersion);
+        if (postRequest.getMultipartFileList()!=null&&!postRequest.getMultipartFileList().isEmpty()) {
+            for (MultipartFile file : postRequest.getMultipartFileList()) {
+                imageServices.uploadImage(currentUser, file, "post photo", postVersion);
+            }
         }
         return new MessageResponse("Tạo bài viết thành công");
     }
