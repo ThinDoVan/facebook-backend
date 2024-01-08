@@ -31,8 +31,7 @@ public class ReportServicesImpl implements ReportServices {
     @Autowired
     AccessControlUtils accessControlUtils;
 
-    @Autowired
-    ReportRequestRepository reportRequestRepository;
+
     @Autowired
     ReportPostRepository reportPostRepository;
     @Autowired
@@ -54,11 +53,7 @@ public class ReportServicesImpl implements ReportServices {
                 if (reportPostRepository.findByPostAndCreatedUser(post.get(), currentUser).isPresent()) {
                     return new MessageResponse("Bạn đã gửi báo cáo về bài viết này trước đây");
                 } else {
-//                    ReportRequest request = new ReportRequest(post.get(),
-//                            currentUser,
-//                            LocalDateTime.now(),
-//                            reportRequestDto.getReason());
-//                    reportRequestRepository.save(request);
+
                     ReportPost reportPost = new ReportPost(post.get(),
                             currentUser,
                             LocalDateTime.now(),
@@ -156,48 +151,6 @@ public class ReportServicesImpl implements ReportServices {
         return responseUtils.pagingList(reportReqDtoList, page, size);
     }
 
-//    @Override
-//    public Page<ReportReqDto> getListReport(Integer postId, Integer userId, String requestStatus, Integer page, Integer size) {
-//        List<ReportRequest> reportRequestList = reportRequestRepository.findAll().stream()
-//                .filter(reportRequest -> postId == null || (reportRequest.getPost() != null && Objects.equals(reportRequest.getPost().getPostId(), postId)))
-//                .filter(reportRequest -> userId == null || (reportRequest.getUser() != null && Objects.equals(reportRequest.getUser().getUserId(), userId)))
-//                .filter(reportRequest -> {
-//                    if (requestStatus != null && !requestStatus.isEmpty()) {
-//                        switch (requestStatus.toLowerCase()) {
-//                            case "pending" -> {
-//                                return reportRequest.getRequestStatus().equals(ERequestStatus.PENDING);
-//                            }
-//                            case "approved" -> {
-//                                return reportRequest.getRequestStatus().equals(ERequestStatus.APPROVED);
-//                            }
-//                            case "rejected" -> {
-//                                return reportRequest.getRequestStatus().equals(ERequestStatus.REJECTED);
-//                            }
-//                            default ->
-//                                    throw new InvalidDataException("Không tồn tại trạng thái " + requestStatus + ". Các trạng thái khả dụng: pending, approved, rejected");
-//                        }
-//                    } else {
-//                        return true;
-//                    }
-//                })
-//                .toList();
-//
-//        List<ReportReqDto> reportReqDtoList = new ArrayList<>();
-//        for (ReportRequest reportRequest : reportRequestList) {
-//            reportReqDtoList.add(responseUtils.getReportRequestInfo(reportRequest));
-//        }
-//        return responseUtils.pagingList(reportReqDtoList, page, size);
-//    }
-
-//    @Override
-//    public ReportReqDto getReportRequest(Integer reportId) {
-//        Optional<ReportRequest> request = reportRequestRepository.findById(reportId);
-//        if (request.isEmpty()) {
-//            throw new DataNotFoundException("Không tìm thấy Report Request có Id " + reportId);
-//        } else {
-//            return responseUtils.getReportRequestInfo(request.get());
-//        }
-//    }
 
     @Override
     public ReportReqDto getReportUserRequest(Integer reportId) {
@@ -257,7 +210,7 @@ public class ReportServicesImpl implements ReportServices {
     }
 
     @Override
-    public MessageResponse handleReportPost() {
+    public void handleReportPost() {
         User admin = userRepository.findById(1).orElseThrow(() -> new DataNotFoundException("Không tìm thấy Admin"));
         List<Post> postList = postRepository.findAllByCountReportedGreaterThanEqual(3).stream()
                 .filter(post -> !post.isDeleted())
@@ -275,75 +228,6 @@ public class ReportServicesImpl implements ReportServices {
             }
             postServices.deletePost(admin, post.getPostId());
         }
-        return new MessageResponse("Xử lý thành công");
+        new MessageResponse("Xử lý thành công");
     }
-
-//    @Override
-//    public MessageResponse handleReport(User admin, Integer reportId, Boolean isApproved) {
-//        if (isApproved == null) {
-//            throw new InvalidDataException("Thiếu nội dung xử lý.");
-//        } else {
-//            Optional<ReportRequest> request = reportRequestRepository.findById(reportId);
-//            if (request.isEmpty()) {
-//                throw new DataNotFoundException("Không tìm thấy Report Request có Id " + reportId);
-//            } else {
-//                if (request.get().getRequestStatus() == ERequestStatus.PENDING) {
-//
-//                    request.get().setAdmin(admin);
-//                    request.get().setProcessedTime(LocalDateTime.now());
-//                    if (isApproved) {
-//                        Post post = request.get().getPost();
-//                        User user = request.get().getUser();
-//                        request.get().setRequestStatus(ERequestStatus.APPROVED);
-//
-//                        if (post != null) {
-//                            User postAuthor = post.getCreatedUser();
-//                            postAuthor.setViolationCount(postAuthor.getViolationCount() + 1);
-//
-//                            if (postAuthor.getViolationCount() >= 3) {
-//                                postAuthor.setLockUntil(LocalDateTime.now().plusHours(24));
-//                                request.get().setAction("Xóa bài viết và Khóa tài khoản trong vòng 24h");
-//                                String content = Email.LOCK_ACCOUNT.getContent()
-//                                        .replace("${username}", postAuthor.getFullName())
-//                                        .replace("${reason}","Tài khoản đăng tải bài viết vi phạm tiêu chuẩn cộng đồng 3 lần")
-//                                        .replace("${action}",request.get().getAction());
-//                                responseUtils.sendEmail(postAuthor, Email.LOCK_ACCOUNT.getSubject(), content);
-//                            }else {
-//                                request.get().setAction("Xóa bài viết");
-//                                String content = Email.REMOVE_POST.getContent()
-//                                        .replace("${username}", postAuthor.getFullName())
-//                                        .replace("${violationCount}", String.valueOf(postAuthor.getViolationCount()))
-//                                        .replace("${action}",request.get().getAction());
-//                                responseUtils.sendEmail(postAuthor, Email.REMOVE_POST.getSubject(), content);
-//                            }
-//
-//
-//
-//                            userRepository.save(postAuthor);
-//                            reportRequestRepository.save(request.get());
-//
-//                            return postServices.deletePost(admin, request.get().getPost().getPostId());
-//                        } else {
-//                            user.setLockUntil(LocalDateTime.now().plusHours(48));
-//                            request.get().setAction("Khóa tài khoản trong 48h");
-//                            String content = Email.LOCK_ACCOUNT.getContent()
-//                                    .replace("${username}", user.getFullName())
-//                                    .replace("${reason}",request.get().getReason())
-//                                    .replace("${action}",request.get().getAction());
-//                            responseUtils.sendEmail(user, Email.LOCK_ACCOUNT.getSubject(), content);
-//                            userRepository.save(user);
-//                            return new MessageResponse("Tài khoản người dùng này bị khóa trong 48h");
-//                        }
-//                    } else {
-//                        request.get().setRequestStatus(ERequestStatus.REJECTED);
-//                        request.get().setAction(null);
-//                        reportRequestRepository.save(request.get());
-//                        return new MessageResponse("Bạn đã từ chối Report Request này");
-//                    }
-//                } else {
-//                    return new MessageResponse("Report Request này đã được xử lý");
-//                }
-//            }
-//        }
-//    }
 }
