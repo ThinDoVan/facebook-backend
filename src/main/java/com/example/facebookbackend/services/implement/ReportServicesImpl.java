@@ -210,7 +210,7 @@ public class ReportServicesImpl implements ReportServices {
     }
 
     @Override
-    public void handleReportPost() {
+    public MessageResponse handleReportPost() {
         User admin = userRepository.findById(1).orElseThrow(() -> new DataNotFoundException("Không tìm thấy Admin"));
         List<Post> postList = postRepository.findAllByCountReportedGreaterThanEqual(3).stream()
                 .filter(post -> !post.isDeleted())
@@ -228,6 +228,6 @@ public class ReportServicesImpl implements ReportServices {
             }
             postServices.deletePost(admin, post.getPostId());
         }
-        new MessageResponse("Xử lý thành công");
+        return new MessageResponse("Xử lý thành công");
     }
 }
